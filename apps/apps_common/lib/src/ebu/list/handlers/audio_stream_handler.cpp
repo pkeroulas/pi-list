@@ -145,9 +145,13 @@ struct audio_jitter_analyser::impl
     const listener_uptr listener_;
 };
 
-audio_jitter_analyser::audio_jitter_analyser(listener_uptr l, int sampling)
+audio_jitter_analyser::audio_jitter_analyser(rtp::packet first_packet, listener_uptr l, int sampling)
     : impl_(std::make_unique<impl>(std::move(l))),
-    sampling_(sampling)
+    first_packet_ts_usec_(std::chrono::duration_cast<std::chrono::microseconds>(first_packet.info.udp.packet_time.time_since_epoch()).count()),
+    sampling_(sampling),
+    first_delta_usec_(get_transit_time(first_packet)),
+    relative_transit_time_max_(0),
+    relative_transit_time_min_(0)
 {
 }
 
@@ -167,8 +171,8 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
     const auto packet_ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count();
 
     /* new TS-DF measurement window */
-    // TODO: remove 20ms and compute windows duration so that it is 1s for a 1Mbits/s stream
-    if((packet_ts_usec - first_packet_ts_usec_) > 20000)
+    // TODO: remove 200ms and compute windows duration so that it is 1s for a 1Mbits/s stream
+    if((packet_ts_usec - first_packet_ts_usec_) > 200000)
     {
         logger()->debug("audio jitter new reference packet TS-DF={}",
                 relative_transit_time_max_ - relative_transit_time_min_);
@@ -193,10 +197,10 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
         relative_transit_time_min_ = relative_time_transit;
     }
 
-    logger()->debug("audio jitter rtt= {} usec, [{} {}]",
-            relative_time_transit,
-            relative_transit_time_min_,
-            relative_transit_time_max_);
+//     logger()->debug("audio jitter rtt= {} usec, [{} {}]",
+//             relative_time_transit,
+//             relative_transit_time_min_,
+//             relative_transit_time_max_);
 }
 
 /*
@@ -211,10 +215,10 @@ int64_t audio_jitter_analyser::get_transit_time(const rtp::packet& packet)
     const long rtp_ts_usec = static_cast<long>(packet.info.rtp.view().timestamp()) * static_cast<long>(1'000'000) / static_cast<long>(sampling_);
     const auto delta_usec = packet_ts_usec - rtp_ts_usec;
 
-    logger()->debug("audio jitter packet_ts_usec={} rtp_ts_usec={} delta_usec={} ",
-            std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count(),
-            rtp_ts_usec,
-            delta_usec);
+//     logger()->debug("audio jitter packet_ts_usec={} rtp_ts_usec={} delta_usec={} ",
+//             std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count(),
+//             rtp_ts_usec,
+//             delta_usec);
 
     return delta_usec;
 }

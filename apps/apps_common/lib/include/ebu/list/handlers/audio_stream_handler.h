@@ -56,7 +56,7 @@ namespace ebu_list
 
         using listener_uptr = std::unique_ptr<listener>;
 
-        audio_jitter_analyser(listener_uptr listener, int sampling);
+        audio_jitter_analyser(rtp::packet first_packet, listener_uptr listener, int sampling);
         ~audio_jitter_analyser();
 
         void on_data(const rtp::packet&) override;
@@ -81,9 +81,9 @@ namespace ebu_list
     public:
         using completion_handler = std::function<void(const audio_stream_handler& ash)>;
 
-        audio_stream_handler(rtp::packet first_packet, 
-            serializable_stream_info info, 
-            audio_stream_details details, 
+        audio_stream_handler(rtp::packet first_packet,
+            serializable_stream_info info,
+            audio_stream_details details,
             completion_handler ch = [](const audio_stream_handler&) {});
 
         const audio_stream_details& info() const;
