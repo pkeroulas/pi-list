@@ -35,7 +35,7 @@
     "audio": {
       "number_channels": "Number of Channels",
       "encoding": "Encoding",
-      "packet_time": "Packet Time",
+      "packet_time": "Packet Time (ms)",
       "sampling": "Sampling",
       "number_samples": "Number of Samples",
       "sample_size": "Size of each sample",
