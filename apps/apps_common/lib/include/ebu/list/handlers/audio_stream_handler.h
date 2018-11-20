@@ -18,6 +18,64 @@ namespace ebu_list
     };
     using sample_uptr = std::unique_ptr<sample>;
 
+    /*
+     * Audio packet jitter measurement
+     * https://tech.ebu.ch/docs/tech/tech3337.pdf
+     *
+     * Relative Transit Time:
+     * D(i,0) = ((R(i) - R(0)) - (S(i) - S(0)))
+     * which is equivalent to:
+     * D(i,0) = ((R(i) - S(i)) - (R(0)) - S(0)))
+     *
+     * with:
+     * R(0): receive time of the reference packet, the first of measurement window
+     * S(0): rtp time of the reference packet
+     * R(i): receive time of packet i
+     * S(i): rtp time of the packet i
+     *
+     */
+
+    class audio_jitter_analyser : public rtp::listener
+    {
+    public:
+        struct jitter_info
+        {
+            clock::time_point timestamp;
+            long time_stamped_delay_factor;
+        };
+
+        class listener
+        {
+        public:
+            virtual ~listener() = default;
+
+            virtual void on_data(const jitter_info&) = 0;
+            virtual void on_complete() = 0;
+            virtual void on_error(std::exception_ptr e) = 0;
+        };
+
+        using listener_uptr = std::unique_ptr<listener>;
+
+        audio_jitter_analyser(listener_uptr listener, int sampling);
+        ~audio_jitter_analyser();
+
+        void on_data(const rtp::packet&) override;
+        void on_complete() override;
+        void on_error(std::exception_ptr ptr) override;
+
+    private:
+        struct impl;
+        const std::unique_ptr<impl> impl_;
+
+        long get_transit_time(const rtp::packet& packet);
+
+        int sampling_;
+        long first_delta_usec_;
+        long first_packet_ts_usec_;
+        long relative_transit_time_max_;
+        long relative_transit_time_min_;
+    };
+
     class audio_stream_handler : public rtp::listener
     {
     public:
