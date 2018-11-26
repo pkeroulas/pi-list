@@ -5,12 +5,16 @@ import NetworkInfo from 'containers/streamPage/NetworkInfo';
 import AudioInfo from 'containers/streamPage/AudioInfo';
 import AudioStatistics from 'containers/streamPage/AudioStatistics';
 import AudioExplorer from 'containers/streamPage/AudioExplorer';
+import LineChart from 'components/LineChart';
+import api from 'utils/api';
+import chartFormatters from 'utils/chartFormatters';
 
 const AudioPage = (props) => {
     const streamInfo = props.streamInfo;
     const networkInfo = streamInfo.network_information;
     const statistics = streamInfo.statistics;
     const mediaInfo = streamInfo.media_specific;
+    const { first_packet_ts, last_packet_ts } = props.streamInfo.statistics;
 
     return (
         <Scrollbars>
@@ -23,6 +27,15 @@ const AudioPage = (props) => {
                     </div>
                     <div className="col-xs-12 col-md-8">
                         <AudioExplorer pcapID={props.pcapID} streamID={props.streamID}/>
+                        <LineChart
+                            asyncData={() => api.getTSDF(props.pcapID, props.streamID, first_packet_ts, last_packet_ts)}
+                            xAxis={chartFormatters.getTimeLineLabel}
+                            data={chartFormatters.singleValueLineChart}
+                            title="TimeStamped Delay Factor (TSDF)"
+                            yAxisLabel="Ticks"
+                            height={300}
+                            lineWidth={3}
+                        />
                     </div>
                 </div>
             </Panel>

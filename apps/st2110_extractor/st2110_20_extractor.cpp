@@ -275,7 +275,7 @@ namespace
                     {
                         const auto info_path = config.storage_folder / stream_info.id;
 
-                        auto db_logger = std::make_unique<influx::influxdb_audio_jitter_logger>(influx_db_url, pcap.id, stream_info.id, "autio-jitter");
+                        auto db_logger = std::make_unique<influx::influxdb_audio_jitter_logger>(influx_db_url, pcap.id, stream_info.id, "audio-jitter");
                         auto analyzer = std::make_unique<audio_jitter_analyser>(std::move(db_logger), 48000);
                         ml->add(std::move(analyzer));
                     }

@@ -254,6 +254,8 @@ router.get('/:pcapID/stream/:streamID/analytics/:measurement', (req, res) => {
         chartData = influxDbManager.getDeltaToPreviousRtpTsRaw(pcapID, streamID, from, to)
     } else if (measurement === 'DeltaRtpVsNt') {
         chartData = influxDbManager.getDeltaRtpVsNt(pcapID, streamID, from, to)
+    } else if (measurement === 'TimeStampedDelayFactor') {
+        chartData = influxDbManager.getTSDF(pcapID, streamID, from, to)
     }
 
     chartData.then(data => res.json(data));
