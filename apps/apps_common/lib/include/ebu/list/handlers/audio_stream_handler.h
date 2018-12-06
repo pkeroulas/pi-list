@@ -41,7 +41,7 @@ namespace ebu_list
         struct jitter_info
         {
             clock::time_point timestamp;
-            long time_stamped_delay_factor;
+            int64_t time_stamped_delay_factor;
         };
 
         class listener
@@ -67,13 +67,13 @@ namespace ebu_list
         struct impl;
         const std::unique_ptr<impl> impl_;
 
-        long get_transit_time(const rtp::packet& packet);
+        int64_t get_transit_time(const rtp::packet& packet);
 
         int sampling_;
-        long first_delta_usec_;
-        long first_packet_ts_usec_;
-        long relative_transit_time_max_;
-        long relative_transit_time_min_;
+        int64_t first_delta_usec_;
+        int64_t first_packet_ts_usec_;
+        int64_t relative_transit_time_max_;
+        int64_t relative_transit_time_min_;
     };
 
     class audio_stream_handler : public rtp::listener

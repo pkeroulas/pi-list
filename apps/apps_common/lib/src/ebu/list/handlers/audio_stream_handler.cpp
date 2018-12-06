@@ -183,7 +183,7 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
     }
 
     /* TS-DF: compute relative transit time and update extrema */
-    const long relative_time_transit = get_transit_time(packet) - first_delta_usec_;
+    const auto relative_time_transit = get_transit_time(packet) - first_delta_usec_;
     if(relative_time_transit > relative_transit_time_max_)
     {
         relative_transit_time_max_ = relative_time_transit;
@@ -205,11 +205,11 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
  *
  * get_transit_time() returns (R(i) - S(i)) in usec
  */
-long audio_jitter_analyser::get_transit_time(const rtp::packet& packet)
+int64_t audio_jitter_analyser::get_transit_time(const rtp::packet& packet)
 {
-    const long packet_ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count();
+    const auto packet_ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count();
     const long rtp_ts_usec = static_cast<long>(packet.info.rtp.view().timestamp()) * static_cast<long>(1'000'000) / static_cast<long>(sampling_);
-    const long delta_usec = packet_ts_usec - rtp_ts_usec;
+    const auto delta_usec = packet_ts_usec - rtp_ts_usec;
 
     logger()->debug("audio jitter packet_ts_usec={} rtp_ts_usec={} delta_usec={} ",
             std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count(),
