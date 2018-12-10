@@ -8,6 +8,7 @@ import AudioExplorer from 'containers/streamPage/AudioExplorer';
 import LineChart from 'components/LineChart';
 import api from 'utils/api';
 import chartFormatters from 'utils/chartFormatters';
+import Button from 'components/common/Button';
 
 const AudioPage = (props) => {
     const streamInfo = props.streamInfo;
@@ -31,12 +32,13 @@ const AudioPage = (props) => {
                             asyncData={() => api.getTSDF(props.pcapID, props.streamID, first_packet_ts, last_packet_ts)}
                             xAxis={chartFormatters.getTimeLineLabel}
                             data={chartFormatters.singleValueLineChart}
-                            title="TimeStamped Delay Factor (TSDF)"
-                            yAxisLabel="Ticks"
+                            title="TimeStamped Delay Factor"
+                            yAxisLabel="TSDF (usec)"
                             height={300}
                             lineWidth={3}
                         />
                     </div>
+                    <Button type="info" label="See EBU's TR for TSDF" onClick={() => {window.open('https://tech.ebu.ch/docs/tech/tech3337.pdf', '_blank')}}/>
                 </div>
             </Panel>
         </Scrollbars>
