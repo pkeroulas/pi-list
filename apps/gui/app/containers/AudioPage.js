@@ -29,13 +29,15 @@ const AudioPage = (props) => {
                     <div className="col-xs-12 col-md-8">
                         <AudioExplorer pcapID={props.pcapID} streamID={props.streamID}/>
                         <LineChart
-                            asyncData={() => api.getTSDF(props.pcapID, props.streamID, first_packet_ts, last_packet_ts)}
+                            // provide packet_time to plot the tolerance line
+                            asyncData={() => api.getTSDF(props.pcapID, props.streamID, first_packet_ts, last_packet_ts, mediaInfo.packet_time * 1000)}
                             xAxis={chartFormatters.getTimeLineLabel}
-                            data={chartFormatters.singleValueLineChart}
+                            data={chartFormatters.singleValueLineThresholdChart}
                             title="TimeStamped Delay Factor"
                             yAxisLabel="TSDF (usec)"
                             height={300}
                             lineWidth={3}
+                            legend
                         />
                     </div>
                     <Button type="info" label="See EBU's TR for TSDF" onClick={() => {window.open('https://tech.ebu.ch/docs/tech/tech3337.pdf', '_blank')}}/>

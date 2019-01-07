@@ -235,12 +235,26 @@ router.patch('/:pcapID/stream/:streamID', (req, res) => {
         .catch(() => res.status(HTTP_STATUS_CODE.CLIENT_ERROR.NOT_FOUND).send(API_ERRORS.RESOURCE_NOT_FOUND));
 });
 
-/* */
+/*  */
 router.get('/:pcapID/stream/:streamID/analytics/CInst/validation', (req, res) => {
     const { pcapID, streamID } = req.params;
 
     const path = `${getUserFolder(req)}/${pcapID}/${streamID}/${CONSTANTS.CINST_FILE}`;
     fs.sendFileAsResponse(path, res);
+});
+
+/* Audio jitters: TSDF */
+router.get('/:pcapID/stream/:streamID/analytics/TimeStampedDelayFactor', (req, res) => {
+    const { pcapID, streamID } = req.params;
+    const { from, to, tolerance } = req.query;
+
+    chartData = influxDbManager.getTSDF(pcapID, streamID, from, to);
+    chartData
+        .then(data => {
+            data.forEach(e => e['tolerance'] = tolerance);
+            res.json(data);
+        })
+        .catch(() => res.status(HTTP_STATUS_CODE.CLIENT_ERROR.NOT_FOUND).send(API_ERRORS.RESOURCE_NOT_FOUND));
 });
 
 /* */
@@ -270,10 +284,7 @@ router.get('/:pcapID/stream/:streamID/analytics/:measurement', (req, res) => {
         chartData = influxDbManager.getDeltaToPreviousRtpTsRaw(pcapID, streamID, from, to)
     } else if (measurement === 'DeltaRtpVsNt') {
         chartData = influxDbManager.getDeltaRtpVsNt(pcapID, streamID, from, to)
-    } else if (measurement === 'TimeStampedDelayFactor') {
-        chartData = influxDbManager.getTSDF(pcapID, streamID, from, to)
     }
-
     chartData.then(data => res.json(data));
 });
 

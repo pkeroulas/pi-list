@@ -156,7 +156,7 @@ class InfluxDbManager {
 
         return this.sendQueryAndFormatResults(query);
     }
-    
+
     getDeltaToPreviousRtpTsRaw(pcapID, streamID, startTime, endTime) {
         const wanted_resolution = Math.ceil((endTime - startTime) / 2000);
         const resolution = wanted_resolution <= 1 ? "1ns" : `${wanted_resolution}ns`;
