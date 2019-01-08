@@ -7,17 +7,19 @@ const propTypes = {
     compliance: PropTypes.oneOf(['narrow', 'narrow_linear', 'wide', 'not_compliant']).isRequired
 };
 
-function getType(value) {
+function getBadgeType(value) {
     if (value === 'narrow' || value === 'narrow_linear') return 'success';
     else if (value === 'not_compliant') return 'danger';
     return 'warning';
 }
 
 const AnalysisBadge = (props) => {
+    const type = getBadgeType(props.compliance);
+
     return (
         <Badge
             icon="assignment"
-            type={getType(props.compliance)}
+            type={`${type}`}
             text={`${props.name}`}
             mini
         />
