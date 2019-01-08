@@ -116,9 +116,9 @@ influxdb_audio_jitter_logger::influxdb_audio_jitter_logger(std::string_view url,
 {
 }
 
-void influxdb_audio_jitter_logger::on_data(const ebu_list::audio_jitter_analyser::jitter_info& info)
+void influxdb_audio_jitter_logger::on_data(const ebu_list::audio_jitter_analyser::tsdf_sample& sample)
 {
-    db_.send_data(prefix_ + "-tsdf", info.time_stamped_delay_factor, info.timestamp);
+    db_.send_data(prefix_ + "-tsdf", sample.time_stamped_delay_factor, sample.timestamp);
 }
 
 void influxdb_audio_jitter_logger::on_complete()
