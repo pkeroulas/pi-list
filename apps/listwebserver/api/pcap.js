@@ -111,13 +111,29 @@ router.put('/', upload.single('pcap'), (req, res) => {
             })
             .then((output) => {
                 logger('st2110_extractor').info(output.stdout);
-                Pcap.findOne({id: pcap_uuid}).exec()
-                    .then(data => {
-                        websocketManager.instance().sendEventToUser(userID, {
-                            event: "DONE",
-                            data: Object.assign({}, data._doc, { progress: 100 })
-                        });
-                    });
+                return Pcap.findOne({id: pcap_uuid}).exec(); // it returns the mongo db record of the PCAP
+            })
+            .then(pcap_data => {
+                // request to influxDB and return
+                // return influx_manager.get(id....);
+            })
+            .then(influx_data => {
+
+                // ENTER PATRICK CODE HERE
+                const low_threshold = 100;
+                const high_threshold = 200;
+
+                // logic here to determine the analysis result
+
+                return Pcap.findOneAndUpdate({id: pcap_uuid},
+                    {analisys_result: result}).exec();
+            })
+            .then(pcap_data => {
+                // Everything is done, we must notify the GUI
+                websocketManager.instance().sendEventToUser(userID, {
+                    event: "DONE",
+                    data: Object.assign({}, pcap_data._doc, { progress: 100 })
+                });
             })
             .catch((output) => {
                 logger('upload-pcap').error(`exception: ${output} ${output.stderr}`);
