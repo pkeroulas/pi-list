@@ -111,22 +111,43 @@ router.put('/', upload.single('pcap'), (req, res) => {
             })
             .then((output) => {
                 logger('st2110_extractor').info(output.stdout);
+                // post-process every audio stream for jitter analysis
+                return Stream.find({pcap: pcap_uuid, media_type: "audio" }).exec()
+            })
+            .then(streams => {
+                var influx_promises= [];
+                streams.forEach(stream => {
+                    influx_promises.push(influxDbManager.getTSDFAmp(pcap_uuid, stream.id));
+                    influx_promises.push(Stream.findOne({id: stream.id}));
+                })
+                return Promise.all(influx_promises);
+            })
+            .then(values => {
+                var mongo_promises = [];
+                // values = [ [influx1], stream1, [influx2], stream2, ... ]
+                for (i = 0; i < values.length; i+=2) {
+                    var tsdf_max, res;
+                    if (values[i] == false) res = 'undefined';
+                    else tsdf_max = values[i][0].max;
+
+                    const stream = values[i+1];
+                    if (! stream.media_specific) continue; // can't do anything without associated stream
+                    const packet_time = stream.media_specific.packet_time * 1000; // usec
+
+                    // determine compliance based on EBU's recommendation
+                    if (tsdf_max < packet_time) res = 'narrow';
+                    else if (tsdf_max > 17 * packet_time) res = 'not_compliant';
+                    else if (! tsdf_max) res = 'undefined';
+                    else res = 'wide';
+
+                    console.debug("promise: tsdf:" + tsdf_max + " res:" + res); // TODO: remove me
+                    mongo_promises.push(Stream.findOneAndUpdate({id: stream.id},
+                        {global_audio_analysis: { tsdf_max: tsdf_max, tsdf_compliance: res }}, {new: true}));
+                }
+                return Promise.all(mongo_promises);
+            })
+            .then(values => {
                 return Pcap.findOne({id: pcap_uuid}).exec(); // it returns the mongo db record of the PCAP
-            })
-            .then(pcap_data => {
-                // request to influxDB and return
-                // return influx_manager.get(id....);
-            })
-            .then(influx_data => {
-
-                // ENTER PATRICK CODE HERE
-                const low_threshold = 100;
-                const high_threshold = 200;
-
-                // logic here to determine the analysis result
-
-                return Pcap.findOneAndUpdate({id: pcap_uuid},
-                    {analisys_result: result}).exec();
             })
             .then(pcap_data => {
                 // Everything is done, we must notify the GUI
@@ -254,16 +275,6 @@ router.get('/:pcapID/stream/:streamID/analytics/TimeStampedDelayFactor', (req, r
             data.forEach(e => e['tolerance'] = tolerance);
             res.json(data);
         })
-        .catch(() => res.status(HTTP_STATUS_CODE.CLIENT_ERROR.NOT_FOUND).send(API_ERRORS.RESOURCE_NOT_FOUND));
-});
-
-router.get('/:pcapID/stream/:streamID/analytics/TimeStampedDelayFactorMax', (req, res) => {
-    const { pcapID, streamID } = req.params;
-    const { from, to } = req.query;
-
-    chartData = influxDbManager.getTSDFMax(pcapID, streamID, from, to);
-    chartData
-        .then(data => res.json(data))
         .catch(() => res.status(HTTP_STATUS_CODE.CLIENT_ERROR.NOT_FOUND).send(API_ERRORS.RESOURCE_NOT_FOUND));
 });
 
