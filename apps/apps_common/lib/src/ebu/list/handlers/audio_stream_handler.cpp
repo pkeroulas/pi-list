@@ -35,10 +35,6 @@ audio_stream_handler::audio_stream_handler(rtp::packet first_packet, serializabl
     using float_sec = std::chrono::duration<float, std::ratio<1, 1>>;
     audio_description_.samples_per_packet = static_cast<int>(to_int(audio_description_.audio.sampling) * float_sec(audio_description_.audio.packet_time).count());
     audio_description_.sample_size = sample_size(audio_description_.audio) * audio_description_.samples_per_packet;
-
-    const auto& audio = this->info();
-    nlohmann::json  j = audio_stream_details::to_json(audio);
-    logger()->info("Stream info:\n {}", j.dump(2, ' '));
 }
 
 void audio_stream_handler::new_sample()
@@ -174,7 +170,8 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
     // TODO: remove 200ms and compute windows duration so that it is 1s for a 1Mbits/s stream
     if((packet_ts_usec - first_packet_ts_usec_) > 200000)
     {
-        logger()->debug("audio jitter new reference packet TS-DF={}",
+        logger()->debug("audio jitter new reference packet, TS-DF = [{},{}] = {}",
+                relative_transit_time_min_, relative_transit_time_max_,
                 relative_transit_time_max_ - relative_transit_time_min_);
 
         /* shoot to influxdb TS-DF = Dmax - Dmin */
@@ -196,11 +193,6 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
     {
         relative_transit_time_min_ = relative_time_transit;
     }
-
-//     logger()->debug("audio jitter rtt= {} usec, [{} {}]",
-//             relative_time_transit,
-//             relative_transit_time_min_,
-//             relative_transit_time_max_);
 }
 
 /*
