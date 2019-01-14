@@ -4,7 +4,7 @@ import Badge from 'components/common/Badge';
 
 const propTypes = {
     name: PropTypes.string.isRequired,
-    compliance: PropTypes.oneOf(['narrow', 'narrow_linear', 'wide', 'not_compliant']).isRequired
+    compliance: PropTypes.oneOf(['narrow', 'narrow_linear', 'wide', 'not_compliant', 'undefined']).isRequired
 };
 
 function getBadgeType(value) {
