@@ -39,7 +39,8 @@
       "sampling": "Sampling",
       "number_samples": "Number of Samples",
       "sample_size": "Size of each sample",
-      "samples_per_packet": "Number of samples per RTP packet"
+      "samples_per_packet": "Number of samples per RTP packet",
+      "tsdf_max": "Maximum of Timestamped Delay Factor"
     },
 
     "video": {

@@ -267,12 +267,17 @@ router.get('/:pcapID/stream/:streamID/analytics/CInst/validation', (req, res) =>
 /* Audio jitters: TSDF */
 router.get('/:pcapID/stream/:streamID/analytics/TimeStampedDelayFactor', (req, res) => {
     const { pcapID, streamID } = req.params;
-    const { from, to, tolerance } = req.query;
+    const { from, to, tolerance, tsdfmax } = req.query;
+    const limit = tolerance * 17; // EBU recommendation #3337
 
     chartData = influxDbManager.getTSDF(pcapID, streamID, from, to);
     chartData
         .then(data => {
-            data.forEach(e => e['tolerance'] = tolerance);
+            data.forEach(e => {
+                e['tolerance'] = tolerance;
+                // display the red limit only when relevant
+                if (tsdfmax > 0.3 * limit) e['limit'] = limit;
+            });
             res.json(data);
         })
         .catch(() => res.status(HTTP_STATUS_CODE.CLIENT_ERROR.NOT_FOUND).send(API_ERRORS.RESOURCE_NOT_FOUND));

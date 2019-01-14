@@ -168,7 +168,13 @@ const singleValueLineThresholdChart = [
         yValues: "tolerance",
         label: "Tolerance",
         color: CHART_COLORS.YELLOW
+    },
+    {
+        yValues: "limit",
+        label: "Limit",
+        color: CHART_COLORS.RED
     }
+
 ];
 
 const singleValueLineChart = [
