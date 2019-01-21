@@ -78,7 +78,7 @@ namespace ebu_list::influx
 
     private:
         // calculator::listener
-        void on_data(const ebu_list::audio_jitter_analyser::tsdf_sample&) override;
+        void on_data(const ebu_list::audio_jitter_analyser::jitter_sample&) override;
         void on_complete() override;
         void on_error(std::exception_ptr ptr) override;
 

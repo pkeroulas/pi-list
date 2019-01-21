@@ -38,9 +38,12 @@ namespace ebu_list
     class audio_jitter_analyser : public rtp::listener
     {
     public:
-        struct tsdf_sample
+        struct jitter_sample
         {
             clock::time_point timestamp;
+            int64_t delay_min;
+            int64_t delay_max;
+            int64_t delay_mean;
             int64_t time_stamped_delay_factor;
         };
 
@@ -49,7 +52,7 @@ namespace ebu_list
         public:
             virtual ~listener() = default;
 
-            virtual void on_data(const tsdf_sample&) = 0;
+            virtual void on_data(const jitter_sample&) = 0;
             virtual void on_complete() = 0;
             virtual void on_error(std::exception_ptr e) = 0;
         };

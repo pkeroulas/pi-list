@@ -169,21 +169,26 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
     // TODO: remove 200ms and compute windows duration so that it is 1s for a 1Mbits/s stream
     if((packet_ts_usec - first_packet_ts_usec_) > 200000)
     {
-        /* get min, max, avg of delays */
+        /* get min, max, mean of delays */
         const auto minmax = std::minmax_element(delays_.begin(), delays_.end());
-        const auto avg = std::accumulate(delays_.begin(), delays_.end(), 0.0) / delays_.size();
+        const auto mean = std::accumulate(delays_.begin(), delays_.end(), 0.0) / delays_.size();
         /* TS-DF = Dmax - Dmin */
         const auto tsdf = (minmax.second[0] - first_delta_usec_) - (minmax.first[0] -first_delta_usec_);
 
-        logger()->info("audio jitter new reference packet, delay=[{},{},{}] TS-DF=[{},{}]={}",
+        logger()->info("audio jitter new delay=[{},{},{}] TS-DF=[{},{}]={}",
                 minmax.first[0],
-                avg,
+                mean,
                 minmax.second[0],
                 (minmax.second[0] - first_delta_usec_) , (minmax.first[0] -first_delta_usec_),
                 tsdf);
 
         /* shoot to influxdb */
-        impl_->listener_->on_data({ packet.info.udp.packet_time , tsdf});
+        impl_->listener_->on_data({
+                packet.info.udp.packet_time,
+                minmax.first[0],
+                minmax.second[0],
+                mean,
+                tsdf});
 
         /* prepare next measurement */
         first_packet_ts_usec_ = packet_ts_usec;

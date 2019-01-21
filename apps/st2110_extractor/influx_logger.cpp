@@ -116,8 +116,11 @@ influxdb_audio_jitter_logger::influxdb_audio_jitter_logger(std::string_view url,
 {
 }
 
-void influxdb_audio_jitter_logger::on_data(const ebu_list::audio_jitter_analyser::tsdf_sample& sample)
+void influxdb_audio_jitter_logger::on_data(const ebu_list::audio_jitter_analyser::jitter_sample& sample)
 {
+    db_.send_data(prefix_ + "-delay-min", sample.delay_min, sample.timestamp);
+    db_.send_data(prefix_ + "-delay-max", sample.delay_max, sample.timestamp);
+    db_.send_data(prefix_ + "-delay-mean", sample.delay_mean, sample.timestamp);
     db_.send_data(prefix_ + "-tsdf", sample.time_stamped_delay_factor, sample.timestamp);
 }
 
@@ -129,4 +132,3 @@ void influxdb_audio_jitter_logger::on_complete()
 void influxdb_audio_jitter_logger::on_error(std::exception_ptr)
 {
 }
-
