@@ -90,6 +90,8 @@ export default {
         request.get(`pcap/${pcapID}/stream/${streamID}/analytics/DeltaToPreviousRtpTsRaw?from=${fromNs}&to=${toNs}`),
     getDeltaRtpVsNtRaw: (pcapID, streamID, fromNs, toNs) =>
         request.get(`pcap/${pcapID}/stream/${streamID}/analytics/DeltaRtpVsNt?from=${fromNs}&to=${toNs}`),
+    getDelay: (pcapID, streamID, fromNs, toNs) =>
+        request.get(`pcap/${pcapID}/stream/${streamID}/analytics/Delay?from=${fromNs}&to=${toNs}`),
     getTSDF: (pcapID, streamID, fromNs, toNs, toleranceUs, tsdfmaxUs) =>
         request.get(`pcap/${pcapID}/stream/${streamID}/analytics/TimeStampedDelayFactor?from=${fromNs}&to=${toNs}&tolerance=${toleranceUs}&tsdfmax=${tsdfmaxUs}`),
     getTSDFMax: (pcapID, streamID, fromNs, toNs) =>
