@@ -145,10 +145,9 @@ audio_jitter_analyser::audio_jitter_analyser(rtp::packet first_packet, listener_
     : impl_(std::make_unique<impl>(std::move(l))),
     first_packet_ts_usec_(std::chrono::duration_cast<std::chrono::microseconds>(first_packet.info.udp.packet_time.time_since_epoch()).count()),
     sampling_(sampling),
-    first_delta_usec_(get_transit_time(first_packet)),
-    relative_transit_time_max_(0),
-    relative_transit_time_min_(0)
+    first_delta_usec_(get_transit_time(first_packet))
 {
+    delays_.clear();
 }
 
 audio_jitter_analyser::~audio_jitter_analyser() = default;
@@ -166,49 +165,52 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
 {
     const auto packet_ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count();
 
-    /* new TS-DF measurement window */
+    /* new measurement window for delays and TS-DF */
     // TODO: remove 200ms and compute windows duration so that it is 1s for a 1Mbits/s stream
     if((packet_ts_usec - first_packet_ts_usec_) > 200000)
     {
-        logger()->debug("audio jitter new reference packet, TS-DF = [{},{}] = {}",
-                relative_transit_time_min_, relative_transit_time_max_,
-                relative_transit_time_max_ - relative_transit_time_min_);
+        /* get min, max, avg of delays */
+        const auto minmax = std::minmax_element(delays_.begin(), delays_.end());
+        const auto avg = std::accumulate(delays_.begin(), delays_.end(), 0.0) / delays_.size();
+        /* TS-DF = Dmax - Dmin */
+        const auto tsdf = (minmax.second[0] - first_delta_usec_) - (minmax.first[0] -first_delta_usec_);
 
-        /* shoot to influxdb TS-DF = Dmax - Dmin */
-        impl_->listener_->on_data({ packet.info.udp.packet_time , relative_transit_time_max_ - relative_transit_time_min_ });
+        logger()->info("audio jitter new reference packet, delay=[{},{},{}] TS-DF=[{},{}]={}",
+                minmax.first[0],
+                avg,
+                minmax.second[0],
+                (minmax.second[0] - first_delta_usec_) , (minmax.first[0] -first_delta_usec_),
+                tsdf);
 
-        first_delta_usec_ = get_transit_time(packet); /* this is (R(0)-S(0)) */
+        /* shoot to influxdb */
+        impl_->listener_->on_data({ packet.info.udp.packet_time , tsdf});
+
+        /* prepare next measurement */
         first_packet_ts_usec_ = packet_ts_usec;
-        relative_transit_time_max_ = relative_transit_time_min_ = 0;
+        first_delta_usec_ = get_transit_time(packet); /* TS-DF: this is (R(0)-S(0)) */
+        delays_.clear();
         return;
     }
 
-    /* TS-DF: compute relative transit time and update extrema */
-    const auto relative_time_transit = get_transit_time(packet) - first_delta_usec_;
-    if(relative_time_transit > relative_transit_time_max_)
-    {
-        relative_transit_time_max_ = relative_time_transit;
-    }
-    if(relative_time_transit < relative_transit_time_min_)
-    {
-        relative_transit_time_min_ = relative_time_transit;
-    }
+    /* save every delay */
+    delays_.push_back(get_transit_time(packet));
 }
 
 /*
- * Audio packet jitter measurement
+ * Audio packet delay/transit time
  * https://tech.ebu.ch/docs/tech/tech3337.pdf
  *
- * get_transit_time() returns (R(i) - S(i)) in usec
+ * get_transit_time() returns the (R(i) - S(i)) (usec) par of TS-DF
  */
 int64_t audio_jitter_analyser::get_transit_time(const rtp::packet& packet)
 {
     const auto packet_ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count();
+    const auto packet_ts_usec_wrap = packet_ts_usec % (0x100000000 * static_cast<long>(1'000'000) / static_cast<long>(sampling_));
     const long rtp_ts_usec = static_cast<long>(packet.info.rtp.view().timestamp()) * static_cast<long>(1'000'000) / static_cast<long>(sampling_);
-    const auto delta_usec = packet_ts_usec - rtp_ts_usec;
+    const auto delta_usec = packet_ts_usec_wrap - rtp_ts_usec;
 
 //     logger()->debug("audio jitter packet_ts_usec={} rtp_ts_usec={} delta_usec={} ",
-//             std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count(),
+//             packet_ts_usec_wrap,
 //             rtp_ts_usec,
 //             delta_usec);
 

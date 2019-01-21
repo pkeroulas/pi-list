@@ -72,8 +72,7 @@ namespace ebu_list
         int sampling_;
         int64_t first_delta_usec_;
         int64_t first_packet_ts_usec_;
-        int64_t relative_transit_time_max_;
-        int64_t relative_transit_time_min_;
+        std::vector<int64_t> delays_;
     };
 
     class audio_stream_handler : public rtp::listener
