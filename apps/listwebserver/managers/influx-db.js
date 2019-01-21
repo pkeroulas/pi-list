@@ -165,6 +165,20 @@ class InfluxDbManager {
         return this.sendQueryAndFormatResults(query);
     }
 
+    getDelay(pcapID, streamID, startTime, endTime) {
+        const query = `
+            select
+            "audio-jitter-delay-min" as "min",
+            "audio-jitter-delay-max" as "max",
+            "audio-jitter-delay-mean" as "mean"
+            ${this.fromPcapIdWhereStreamIs(pcapID, streamID)} and ${this.timeFilter(startTime, endTime)}
+        `;
+
+        log.info(`Get Delay for the stream ${streamID} in the pcap ${pcapID}. Query: \n ${query}`);
+
+        return this.sendQueryAndFormatResults(query);
+    }
+
     getTSDF(pcapID, streamID, startTime, endTime) {
         const query = `
             select "audio-jitter-tsdf" as "value"
