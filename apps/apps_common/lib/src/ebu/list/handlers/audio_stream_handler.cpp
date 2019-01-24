@@ -1,6 +1,8 @@
 #include "ebu/list/handlers/audio_stream_handler.h"
 #include "ebu/list/st2110/d30/audio_description.h"
 #include "ebu/list/core/idioms.h"
+#include "ebu/list/core/math.h"
+#include "pch.h"
 
 using namespace ebu_list;
 using namespace ebu_list::st2110::d30;
@@ -209,15 +211,14 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
  */
 int64_t audio_jitter_analyser::get_transit_time(const rtp::packet& packet)
 {
-    const auto packet_ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count();
-    const auto packet_ts_usec_wrap = packet_ts_usec % (0x100000000 * static_cast<long>(1'000'000) / static_cast<long>(sampling_));
-    const long rtp_ts_usec = static_cast<long>(packet.info.rtp.view().timestamp()) * static_cast<long>(1'000'000) / static_cast<long>(sampling_);
-    const auto delta_usec = packet_ts_usec_wrap - rtp_ts_usec;
+    constexpr auto RTP_WRAP_AROUND = 0x100000000;
+    const auto packet_ts_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(packet.info.udp.packet_time.time_since_epoch()).count();
+    const auto packet_time = fraction64(packet_ts_nsec, std::giga::num);
+    const auto ticks_wrap = static_cast<int64_t>(round(static_cast<double>(packet_time) * sampling_)) %  RTP_WRAP_AROUND;
+    const auto tick_delay = ticks_wrap - packet.info.rtp.view().timestamp();
+    const long delta_nsec = static_cast<long>(tick_delay) * static_cast<long>(1'000'000'000) / static_cast<long>(sampling_);
 
-//     logger()->debug("audio jitter packet_ts_usec={} rtp_ts_usec={} delta_usec={} ",
-//             packet_ts_usec_wrap,
-//             rtp_ts_usec,
-//             delta_usec);
+//     logger()->debug("audio tick_delay={} delta_nsec={}", tick_delay, delta_nsec);
 
-    return delta_usec;
+    return delta_nsec / 1000; //return usec
 }
