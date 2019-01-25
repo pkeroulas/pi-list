@@ -33,7 +33,7 @@ const AudioPage = (props) => {
                             asyncData={() => api.getDelay(props.pcapID, props.streamID, first_packet_ts, last_packet_ts)}
                             xAxis={chartFormatters.getTimeLineLabel}
                             data={chartFormatters.stdDeviationMeanMinMaxLineChart}
-                            title="Audio Delay"
+                            title="Transit Time"
                             yAxisLabel="Delay (usec)"
                             height={300}
                             lineWidth={3}
