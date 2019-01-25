@@ -189,7 +189,7 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
                 packet.info.udp.packet_time,
                 minmax.first[0],
                 minmax.second[0],
-                mean,
+                static_cast<int64_t>(mean),
                 tsdf});
 
         /* prepare next measurement */
@@ -216,7 +216,7 @@ int64_t audio_jitter_analyser::get_transit_time(const rtp::packet& packet)
     const auto packet_time = fraction64(packet_ts_nsec, std::giga::num);
     const auto ticks_wrap = static_cast<int64_t>(round(static_cast<double>(packet_time) * sampling_)) %  RTP_WRAP_AROUND;
     const auto tick_delay = ticks_wrap - packet.info.rtp.view().timestamp();
-    const long delta_nsec = static_cast<long>(tick_delay) * static_cast<long>(1'000'000'000) / static_cast<long>(sampling_);
+    const auto delta_nsec = tick_delay * 1'000'000'000 / sampling_;
 
 //     logger()->debug("audio tick_delay={} delta_nsec={}", tick_delay, delta_nsec);
 
