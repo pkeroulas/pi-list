@@ -150,7 +150,7 @@ function audioConsolidation(req, res, next) {
         .then(streams => {
             let influx_promises = [];
             streams.forEach(stream => {
-                influx_promises.push(influxDbManager.getTSDFAmp(pcap_uuid, stream.id));
+                influx_promises.push(influxDbManager.getAudioTimeStampedDelayFactorAmp(pcap_uuid, stream.id));
                 influx_promises.push(Stream.findOne({id: stream.id}));
             });
             return Promise.all(influx_promises);
