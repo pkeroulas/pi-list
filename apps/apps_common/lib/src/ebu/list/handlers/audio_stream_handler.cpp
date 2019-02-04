@@ -146,8 +146,7 @@ struct audio_jitter_analyser::impl
 audio_jitter_analyser::audio_jitter_analyser(rtp::packet first_packet, listener_uptr l, int sampling)
     : impl_(std::make_unique<impl>(std::move(l))),
     first_packet_ts_usec_(std::chrono::duration_cast<std::chrono::microseconds>(first_packet.info.udp.packet_time.time_since_epoch()).count()),
-    sampling_(sampling),
-    first_delta_usec_(get_transit_time(first_packet))
+    sampling_(sampling)
 {
     delays_.clear();
 }
@@ -171,45 +170,38 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
     // TODO: remove 200ms and compute windows duration so that it is 1s for a 1Mbits/s stream
     if((packet_ts_usec - first_packet_ts_usec_) > 200000)
     {
+        first_packet_ts_usec_ = packet_ts_usec;
+
         /* get min, max, mean of delays */
         const auto minmax = std::minmax_element(delays_.begin(), delays_.end());
+        const auto min = minmax.first[0];
+        const auto max = minmax.second[0];
         const auto mean = std::accumulate(delays_.begin(), delays_.end(), 0.0) / delays_.size();
-        /* TS-DF = Dmax - Dmin */
-        const auto tsdf = (minmax.second[0] - first_delta_usec_) - (minmax.first[0] -first_delta_usec_);
 
-        logger()->info("audio jitter new delay=[{},{},{}] TS-DF=[{},{}]={}",
-                minmax.first[0],
-                mean,
-                minmax.second[0],
-                (minmax.second[0] - first_delta_usec_) , (minmax.first[0] -first_delta_usec_),
-                tsdf);
+        /* TS-DF is the amplitude of relative transit delay based on a
+         * reference delay, i.e. the first delay of the measurement window */
+        const auto init = delays_[0];
+        const auto tsdf = (max - init) - (min - init);
+
+        logger()->trace("audio: new delay=[{},{},{}] TS-DF=[{},{}]={}",
+                min, mean, max, (max - init), (min - init), tsdf);
 
         /* shoot to influxdb */
-        impl_->listener_->on_data({
-                packet.info.udp.packet_time,
-                minmax.first[0],
-                minmax.second[0],
-                static_cast<int64_t>(mean),
-                tsdf});
+        impl_->listener_->on_data({packet.info.udp.packet_time, min, max, static_cast<int64_t>(mean), tsdf});
 
-        /* prepare next measurement */
-        first_packet_ts_usec_ = packet_ts_usec;
-        first_delta_usec_ = get_transit_time(packet); /* TS-DF: this is (R(0)-S(0)) */
+        /* reinit measurement the window with the new reference transit
+         * delay for TS-DF, i.e. (R(0)-S(0)) */
         delays_.clear();
-        return;
     }
 
     /* save every delay */
-    delays_.push_back(get_transit_time(packet));
+    delays_.push_back(get_transit_delay(packet));
 }
 
 /*
- * Audio packet delay/transit time
- * https://tech.ebu.ch/docs/tech/tech3337.pdf
- *
- * get_transit_time() returns the (R(i) - S(i)) (usec) par of TS-DF
+ * get_transit_delay() returns the (R(i) - S(i)) (usec) part of TS-DF
  */
-int64_t audio_jitter_analyser::get_transit_time(const rtp::packet& packet)
+int64_t audio_jitter_analyser::get_transit_delay(const rtp::packet& packet)
 {
     constexpr auto RTP_WRAP_AROUND = 0x100000000;
     const auto packet_ts_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(packet.info.udp.packet_time.time_since_epoch()).count();
@@ -218,7 +210,7 @@ int64_t audio_jitter_analyser::get_transit_time(const rtp::packet& packet)
     const auto tick_delay = ticks_wrap - packet.info.rtp.view().timestamp();
     const auto delta_nsec = tick_delay * 1'000'000'000 / sampling_;
 
-//     logger()->debug("audio tick_delay={} delta_nsec={}", tick_delay, delta_nsec);
+    logger()->trace("audio tick_delay={} delta_nsec={}", tick_delay, delta_nsec);
 
     return delta_nsec / 1000; //return usec
 }

@@ -70,10 +70,9 @@ namespace ebu_list
         struct impl;
         const std::unique_ptr<impl> impl_;
 
-        int64_t get_transit_time(const rtp::packet& packet);
+        int64_t get_transit_delay(const rtp::packet& packet);
 
         int sampling_;
-        int64_t first_delta_usec_;
         int64_t first_packet_ts_usec_;
         std::vector<int64_t> delays_;
     };
