@@ -133,7 +133,7 @@ void audio_stream_handler::parse_packet(const rtp::packet& packet)
 
 //------------------------------------------------------------------------------
 
-struct audio_jitter_analyser::impl
+struct audio_delay_analyser::impl
 {
     impl(listener_uptr l)
         : listener_(std::move(l))
@@ -143,7 +143,7 @@ struct audio_jitter_analyser::impl
     const listener_uptr listener_;
 };
 
-audio_jitter_analyser::audio_jitter_analyser(rtp::packet first_packet, listener_uptr l, int sampling)
+audio_delay_analyser::audio_delay_analyser(rtp::packet first_packet, listener_uptr l, int sampling)
     : impl_(std::make_unique<impl>(std::move(l))),
     first_packet_ts_usec_(std::chrono::duration_cast<std::chrono::microseconds>(first_packet.info.udp.packet_time.time_since_epoch()).count()),
     sampling_(sampling)
@@ -151,18 +151,18 @@ audio_jitter_analyser::audio_jitter_analyser(rtp::packet first_packet, listener_
     delays_.clear();
 }
 
-audio_jitter_analyser::~audio_jitter_analyser() = default;
+audio_delay_analyser::~audio_delay_analyser() = default;
 
-void audio_jitter_analyser::on_complete()
+void audio_delay_analyser::on_complete()
 {
     impl_->listener_->on_complete();
 }
 
-void audio_jitter_analyser::on_error(std::exception_ptr)
+void audio_delay_analyser::on_error(std::exception_ptr)
 {
 }
 
-void audio_jitter_analyser::on_data(const rtp::packet& packet)
+void audio_delay_analyser::on_data(const rtp::packet& packet)
 {
     const auto packet_ts_usec = std::chrono::duration_cast<std::chrono::microseconds>(packet.info.udp.packet_time.time_since_epoch()).count();
 
@@ -201,7 +201,7 @@ void audio_jitter_analyser::on_data(const rtp::packet& packet)
 /*
  * get_transit_delay() returns the (R(i) - S(i)) (usec) part of TS-DF
  */
-int64_t audio_jitter_analyser::get_transit_delay(const rtp::packet& packet)
+int64_t audio_delay_analyser::get_transit_delay(const rtp::packet& packet)
 {
     constexpr auto RTP_WRAP_AROUND = 0x100000000;
     const auto packet_ts_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(packet.info.udp.packet_time.time_since_epoch()).count();

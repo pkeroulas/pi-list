@@ -163,7 +163,7 @@ router.get('/:pcapID/stream/:streamID/analytics/CInst/validation', (req, res) =>
     fs.sendFileAsResponse(path, res);
 });
 
-/* Audio Delay */
+/* Audio Delays */
 router.get('/:pcapID/stream/:streamID/analytics/AudioTransitDelay', (req, res) => {
     const { pcapID, streamID } = req.params;
     const { from, to } = req.query;
@@ -174,7 +174,6 @@ router.get('/:pcapID/stream/:streamID/analytics/AudioTransitDelay', (req, res) =
         .catch(() => res.status(HTTP_STATUS_CODE.CLIENT_ERROR.NOT_FOUND).send(API_ERRORS.RESOURCE_NOT_FOUND));
 });
 
-/* Audio jitters: TSDF */
 router.get('/:pcapID/stream/:streamID/analytics/AudioTimeStampedDelayFactor', (req, res) => {
     const { pcapID, streamID } = req.params;
     const { from, to, tolerance, tsdfmax } = req.query;

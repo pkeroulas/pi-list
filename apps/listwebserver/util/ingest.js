@@ -145,7 +145,7 @@ function singleStreamAnalysis(req, res, next) {
 function audioConsolidation(req, res, next) {
     const pcap_uuid = req.pcap.uuid;
 
-    // post-process every audio stream for jitter analysis
+    // post-process every audio stream for delay analysis
     Stream.find({pcap: pcap_uuid, media_type: "audio" }).exec()
         .then(streams => {
             let influx_promises = [];
