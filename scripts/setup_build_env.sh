@@ -11,6 +11,7 @@ apt -t stretch-backports install -y --no-install-recommends cmake
 apt install -y \
     curl \
     libpcap-dev \
+    libssl-dev \
     python-pip \
     rsync \
     uuid-dev
