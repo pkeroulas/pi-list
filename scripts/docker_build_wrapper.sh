@@ -28,7 +28,8 @@ init() {
         mkdir -p $TOP_DIR/release/
         echo "Creating $DOCKERFILE"
         cat > $DOCKERFILE << EOF
-# This is the "builder" Dockerfile
+# This Dockerfile creates a environment to compile the CPP apps, build
+# the Node server, and the UI.
 
 FROM gcc:7.2
 
