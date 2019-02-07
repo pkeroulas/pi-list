@@ -141,7 +141,8 @@
     "processing_streams": "Processing Streams...",
     "done": "Done",
     "capture_stream": "Capture Stream",
-    "start_capture": "Start"
+    "start_capture": "Start",
+    "drop_sdp_file_here": "Drop your SDP file here"
   },
 
   "user_account": {

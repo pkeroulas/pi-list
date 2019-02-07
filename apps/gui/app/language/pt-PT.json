@@ -140,7 +140,8 @@
     "processing_streams": "A processar as Streams...",
     "done": "Concluído",
     "capture_stream": "Gravar Stream",
-    "start_capture": "Iniciar"
+    "start_capture": "Iniciar",
+    "drop_sdp_file_here": "Arraste para aqui seu ficheiro SDP"
   },
 
   "user_account": {
