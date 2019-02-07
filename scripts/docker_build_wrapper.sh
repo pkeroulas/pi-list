@@ -64,7 +64,7 @@ release() {
 
 dev() {
     docker run -u $USER -v $TOP_DIR:/home/$USER -it $IMAGE:latest \
-        ./scripts/deploy/build.sh "-DCMAKE_BUILD_TYPE=Debug -DUSE_PCH=OFF -DBUILD_ALL=ON"
+        ./scripts/deploy/build.sh $TOP_DIR/build "-DCMAKE_BUILD_TYPE=Debug -DUSE_PCH=OFF -DBUILD_ALL=ON"
 }
 
 run_bash() {
