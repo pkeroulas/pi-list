@@ -20,9 +20,7 @@ apt install -y \
 pip install conan
 
 # custom node version
-curl -sL https://deb.nodesource.com/setup_8.x -o nodesource_setup.sh
-bash nodesource_setup.sh
-rm -f nodesource_setup.sh
+curl -sL https://deb.nodesource.com/setup_8.x | bash -
 apt install -y nodejs npm
 
 echo "Please install FFMPEG v2.8 or newer using your package manager or https://www.ffmpeg.org/download.html"
