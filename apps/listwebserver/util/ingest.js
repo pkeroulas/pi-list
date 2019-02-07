@@ -1,5 +1,7 @@
 const util = require('util');
 const child_process = require('child_process');
+const fs = require('fs');
+const sdp_parser = require('sdp-transform');
 const uuidv1 = require('uuid/v1');
 const program = require('./programArguments');
 const websocketManager = require('../managers/websocket');
@@ -230,7 +232,13 @@ function pcapIngestEnd(req, res, next) {
 }
 
 function sdpIngest(req, res, next){
-    console.log("INGEST  !!!!!!!")
+    fs.readFile(req.file.path, function(err, sdp) {
+        parsed = sdp_parser.parse(sdp.toString());
+        parsed.media.forEach(function (media) {
+            console.log(media);
+            console.log(sdp_parser.parseParams(media.fmtp[0].config));
+        });
+    });
 }
 
 module.exports = {
