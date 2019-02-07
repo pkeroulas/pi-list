@@ -1,10 +1,12 @@
 const { isObject, isEmpty } = require('lodash');
 const { Router } = require('express');
 const router = Router();
+const multer = require('multer');
 const fs = require('../util/filesystem');
 const program = require('../util/programArguments');
 const API_ERRORS = require('../enums/apiErrors');
 const HTTP_STATUS_CODE = require('../enums/httpStatusCode');
+const { sdpIngest } = require('../util/ingest');
 
 // Constants
 const availableOptionsFile = `${program.folder}/stream_types.json`;
@@ -30,5 +32,24 @@ router.get('/available-options', (req, res) => {
                 .send(API_ERRORS.SDP_AVAILABLE_OPTIONS_NOT_FOUND));
     }
 });
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        // req.pcap = generateRandomPcapDefinition(req);
+        // fs.createIfNotExists(req.pcap.folder);
+        // cb(null, req.pcap.folder);
+        cb(null, "/tmp/");
+    },
+    filename: function (req, file, cb) {
+        cb(null, "mysdp")
+    }
+});
+
+const upload = multer({ storage: storage });
+
+router.put('/', upload.single('sdp'), (req, res, next) => {
+    res.status(HTTP_STATUS_CODE.SUCCESS.CREATED).send();
+    next();
+}, sdpIngest);
 
 module.exports = router;

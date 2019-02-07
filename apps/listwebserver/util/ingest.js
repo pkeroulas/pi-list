@@ -229,10 +229,15 @@ function pcapIngestEnd(req, res, next) {
         })
 }
 
+function sdpIngest(req, res, next){
+    console.log("INGEST  !!!!!!!")
+}
+
 module.exports = {
     getUserFolder,
     generateRandomPcapFilename,
     generateRandomPcapDefinition,
     pcapIngest: [pcapFileAvailableFromReq, pcapPreProcessing, pcapFullAnalysis, audioConsolidation, pcapIngestEnd],
-    pcapSingleStreamIngest: [pcapFileAvailableFromReq, singleStreamAnalysis, audioConsolidation]
+    pcapSingleStreamIngest: [pcapFileAvailableFromReq, singleStreamAnalysis, audioConsolidation],
+    sdpIngest
 };
