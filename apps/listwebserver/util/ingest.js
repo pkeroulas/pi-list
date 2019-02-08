@@ -232,13 +232,36 @@ function pcapIngestEnd(req, res, next) {
 }
 
 function sdpIngest(req, res, next){
-    fs.readFile(req.file.path, function(err, sdp) {
-        parsed = sdp_parser.parse(sdp.toString());
-        parsed.media.forEach(function (media) {
-            console.log(media);
-            console.log(sdp_parser.parseParams(media.fmtp[0].config));
+    const userID = req.session.passport.user.id;
+    const readFileAsync = util.promisify(fs.readFile);
+
+    readFileAsync(req.file.path)
+        .then((sdp) => {
+            //TODO verify SDP syntax before parsing
+            const parsed = sdp_parser.parse(sdp.toString());
+
+            console.log(parsed);
+            // grab src and dst IPs for each stream
+            const streams = parsed.media.map(function (media) {
+                return {
+                    dst: media.sourceFilter.destAddress,
+                    src: media.sourceFilter.srcList
+                };
+            });
+
+            // notify the live subscription panel
+            websocketManager.instance().sendEventToUser(userID, {
+                event: 'SDP_FILE_RECEIVED',
+                data: {
+                    description: parsed.name,
+                    streams: streams
+                }
+            });
+        }).then(() => {
+            fs.unlink(req.file.path);
+        }).catch(err => {
+            throw err;
         });
-    });
 }
 
 module.exports = {
