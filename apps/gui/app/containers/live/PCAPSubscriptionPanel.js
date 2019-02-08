@@ -6,6 +6,8 @@ import api from 'utils/api';
 import notifications from 'utils/notifications';
 import Input from 'components/common/Input';
 import FormInput from 'components/common/FormInput';
+import websocket from 'utils/websocket';
+import websocketEventsEnum from 'enums/websocketEventsEnum';
 
 class PCAPSubscriptionPanel extends Component {
     constructor(props) {
@@ -14,14 +16,32 @@ class PCAPSubscriptionPanel extends Component {
         this.state = {
             source: '',
             destination_address: '',
-            destination_port: 0,
             duration: 1000,
             name: Date.now(),
             capturing: false
         };
 
         this.subscribe = this.subscribe.bind(this);
+        this.onSdpReceived = this.onSdpReceived.bind(this);
     }
+
+    onSdpReceived(data) {
+        const stream = data.streams[0]; //TODO: add entries
+        this.setState({
+            name: data.description,
+            source: stream.src,
+            destination_address: stream.dst
+        });
+    }
+
+    componentDidMount() {
+        websocket.on(websocketEventsEnum.LIVE.SDP_RECEIVED, this.onSdpReceived);
+    }
+
+    componentWillUnmount() {
+        websocket.off(websocketEventsEnum.LIVE.SDP_RECEIVED, this.onSdpReceived);
+    }
+
 
     subscribe() {
         this.setState(

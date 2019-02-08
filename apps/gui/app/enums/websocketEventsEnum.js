@@ -7,6 +7,7 @@ export default {
         DONE: 'PCAP_FILE_PROCESSING_DONE'
     },
     LIVE: {
+        SDP_RECEIVED: 'SDP_FILE_RECEIVED',
         STREAM_UPDATE: 'STREAM_UPDATE',
         NMOS_UPDATE: 'NMOS_UPDATE'
     }
