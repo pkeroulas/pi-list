@@ -63,6 +63,7 @@
     },
 
     "rtp": {
+      "stream": "Stream",
       "source": "Source",
       "destination": "Destination",
       "ssrc": "SSRC",
@@ -141,6 +142,7 @@
     "processing_streams": "Processing Streams...",
     "done": "Done",
     "capture_stream": "Capture Stream",
+    "add_stream": "Add Stream",
     "start_capture": "Start",
     "drop_sdp_file_here": "Drop your SDP file here"
   },
