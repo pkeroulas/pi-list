@@ -38,6 +38,15 @@ function runTcpdump(req, res, next) {
         ? [`--snapshot-length=${program.capture.snapshotLength}`]
         : [];
 
+    // tcpdump filter must be like "dst XXX.XXX.XXX.XXX or dst YYY.YYY.YYY.YYY or ..."
+    const dst_filter = req.body.stream ?
+        `${
+            req.body.stream.map(stream => {
+                return "dst " + stream.dst;
+            })
+        }`.replace(/,/g,' or ')
+        : '';
+
     const tcpdumpProgram = '/usr/sbin/tcpdump';
     const tcpdumpOptions = {};
 
@@ -47,7 +56,8 @@ function runTcpdump(req, res, next) {
         "-j", "adapter_unsynced",
         "-c", "5000000",
         ...snapshotLength,
-        "-w", temp_file
+        "-w", temp_file,
+        dst_filter
     ];
 
     console.log(`${tcpdumpProgram} ${tcpdumpArguments.join(' ')}`);
