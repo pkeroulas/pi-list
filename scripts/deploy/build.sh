@@ -14,7 +14,7 @@ cd $BUILD_DIR
 
 echo
 echo "Compiling CPP Code..."
-if [ -z $CMAKE_FLAGS ]; then
+if [ -z "$CMAKE_FLAGS" ]; then
     echo "Using default cmake flags."
 fi
 cmake .. $CMAKE_FLAGS

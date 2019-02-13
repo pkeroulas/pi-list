@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # This script creates a build environment in a docker container to be
-# used to compile the whole project in a dev or deployment context.
+# used to compile the whole project in a dev, test or production context.
 #
 # The project directory is mounted as a volume in the container to allow
 # both container and native system user to access everything r/w. The
