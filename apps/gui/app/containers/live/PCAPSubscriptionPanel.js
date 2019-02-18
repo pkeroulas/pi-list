@@ -23,11 +23,11 @@ class PCAPSubscriptionPanel extends Component {
         };
 
         this.subscribe = this.subscribe.bind(this);
-        this.onSdpReceived = this.onSdpReceived.bind(this);
+        this.onSdpParsed = this.onSdpParsed.bind(this);
         this.renderStreamEntry = this.renderStreamEntry.bind(this);
     }
 
-    onSdpReceived(data) {
+    onSdpParsed(data) {
         this.setState({
             name: data.description,
             stream: data.streams.map(str => {
@@ -37,11 +37,11 @@ class PCAPSubscriptionPanel extends Component {
     }
 
     componentDidMount() {
-        websocket.on(websocketEventsEnum.LIVE.SDP_RECEIVED, this.onSdpReceived);
+        websocket.on(websocketEventsEnum.LIVE.IP_PARSED_FROM_SDP, this.onSdpParsed);
     }
 
     componentWillUnmount() {
-        websocket.off(websocketEventsEnum.LIVE.SDP_RECEIVED, this.onSdpReceived);
+        websocket.off(websocketEventsEnum.LIVE.IP_PARSED_FROM_SDP, this.onSdpParsed);
     }
 
 

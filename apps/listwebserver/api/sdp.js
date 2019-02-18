@@ -33,11 +33,8 @@ router.get('/available-options', (req, res) => {
     }
 });
 
-const storage = multer.diskStorage({
+const storageTmp = multer.diskStorage({
     destination: function (req, file, cb) {
-        // req.pcap = generateRandomPcapDefinition(req);
-        // fs.createIfNotExists(req.pcap.folder);
-        // cb(null, req.pcap.folder);
         cb(null, "/tmp/");
     },
     filename: function (req, file, cb) {
@@ -45,8 +42,9 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storageTmp });
 
+// save the doc in a tmp file, check it, parse it and delete it.
 router.put('/', upload.single('sdp'), (req, res, next) => {
     res.status(HTTP_STATUS_CODE.SUCCESS.CREATED).send();
     next();

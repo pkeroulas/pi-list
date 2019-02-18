@@ -251,7 +251,7 @@ function sdpIngest(req, res, next){
 
             // notify the live subscription panel
             websocketManager.instance().sendEventToUser(userID, {
-                event: 'SDP_FILE_RECEIVED',
+                event: 'IP_PARSED_FROM_SDP',
                 data: {
                     description: parsed.name,
                     streams: streams
