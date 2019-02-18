@@ -2,6 +2,7 @@ const util = require('util');
 const child_process = require('child_process');
 const fs = require('fs');
 const sdp_parser = require('sdp-transform');
+const sdpoker = require('sdpoker');
 const uuidv1 = require('uuid/v1');
 const program = require('./programArguments');
 const websocketManager = require('../managers/websocket');
@@ -231,13 +232,32 @@ function pcapIngestEnd(req, res, next) {
         })
 }
 
-function sdpIngest(req, res, next){
+function sdpCheck(req, res, next){
+    sdpoker.getSDP(req.file.path, false)
+        .then(sdp => {
+            const rfcErrors = sdpoker.checkRFC4566(sdp, {});
+            const st2110Errors = sdpoker.checkST2110(sdp, {});
+            const errors = rfcErrors.concat(st2110Errors);
+            if (errors.length !== 0) {
+                // notify instead of printing
+                logger('sdp-check').error(`Found ${errors.length} error(s) in SDP file:`);
+                for ( let c in errors ) {
+                    logger('sdp-check').error(`${+c + 1}: ${errors[c].message}`);
+                }
+            }
+            next();
+        })
+        .catch(err => {
+            logger('sdp-check').error(`exception: ${err}`);
+        });
+}
+
+function sdpParseIp(req, res, next){
     const userID = req.session.passport.user.id;
     const readFileAsync = util.promisify(fs.readFile);
 
     readFileAsync(req.file.path)
         .then((sdp) => {
-            //TODO verify SDP syntax before parsing
             const parsed = sdp_parser.parse(sdp.toString());
 
             console.log(parsed);
@@ -257,11 +277,17 @@ function sdpIngest(req, res, next){
                     streams: streams
                 }
             });
-        }).then(() => {
-            fs.unlink(req.file.path);
-        }).catch(err => {
-            throw err;
+        })
+        .then(() => {
+            next();
+        })
+        .catch(err => {
+            logger('sdp-parse').error(`exception: ${err}`);
         });
+}
+
+function sdpDelete(req, res, next){
+    fs.unlink(req.file.path);
 }
 
 module.exports = {
@@ -270,5 +296,5 @@ module.exports = {
     generateRandomPcapDefinition,
     pcapIngest: [pcapFileAvailableFromReq, pcapPreProcessing, pcapFullAnalysis, audioConsolidation, pcapIngestEnd],
     pcapSingleStreamIngest: [pcapFileAvailableFromReq, singleStreamAnalysis, audioConsolidation],
-    sdpIngest
+    sdpIngest: [sdpParseIp, sdpCheck, sdpDelete]
 };
