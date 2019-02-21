@@ -19,13 +19,13 @@ function runTcpdump(req, res, next) {
     logger('live').info(`Received: ${JSON.stringify(req.body)}`);
 
     const new_pcap_filename = generateRandomPcapFilename();
-    const temp_file = `/tmp/${new_pcap_filename}`;
-    const destination_file = `${req.pcap.folder}/${new_pcap_filename}`;
+    const tempFile = `/tmp/${new_pcap_filename}`;
+    const destinationFile = `${req.pcap.folder}/${new_pcap_filename}`;
     const duration_ms = req.body.duration || 500;
 
     // sets req.file, which is used by the ingest system
     req.file = {
-        path: destination_file,
+        path: destinationFile,
         originalname: req.body.name,
         filename: new_pcap_filename
     };
@@ -39,10 +39,10 @@ function runTcpdump(req, res, next) {
         : [];
 
     // tcpdump filter must be like "dst XXX.XXX.XXX.XXX or dst YYY.YYY.YYY.YYY or ..."
-    const dst_filter = req.body.stream ?
+    const tcpdumpFilter = req.body.stream ?
         `${
             req.body.stream.map(stream => {
-                return "dst " + stream.dst;
+                return stream.dst? "dst " + stream.dst : '';
             })
         }`.replace(/,/g,' or ')
         : '';
@@ -56,8 +56,8 @@ function runTcpdump(req, res, next) {
         "-j", "adapter_unsynced",
         "-c", "5000000",
         ...snapshotLength,
-        "-w", temp_file,
-        dst_filter
+        "-w", tempFile,
+        tcpdumpFilter
     ];
 
     console.log(`${tcpdumpProgram} ${tcpdumpArguments.join(' ')}`);
@@ -73,7 +73,7 @@ function runTcpdump(req, res, next) {
     };
 
     tcpDumpProcess.on('error', (err) => {
-        console.log('error during capture:', err);
+        logger('live').error(`error during capture:, ${err}`);
     });
 
     tcpDumpProcess.stdout.on('data', appendToOutput);
@@ -105,27 +105,32 @@ function runTcpdump(req, res, next) {
 
         if (dropInfo.kernel > 0 || dropInfo.interface > 0) {
             res.status(HTTP_STATUS_CODE.CLIENT_ERROR.BAD_REQUEST).send(API_ERRORS.UNEXPECTED_ERROR);
-            jetpack.remove(temp_file);
-        } else {
-            jetpack.move(temp_file, destination_file);
+            jetpack.removeAsync(tempFile);
+            return;
+        }
 
+        jetpack.copyAsync(tempFile, destinationFile)
+        .then(() =>{
+            jetpack.removeAsync(tempFile);
             if (code === 0 || killed) {
                 res.status(HTTP_STATUS_CODE.SUCCESS.CREATED).send();
                 next();
             } else {
                 res.status(HTTP_STATUS_CODE.CLIENT_ERROR.BAD_REQUEST).send(API_ERRORS.UNEXPECTED_ERROR);
             }
-        }
+        })
+        .catch(() => {
+            logger('live').error('Could not copy pcap file');
+            res.status(HTTP_STATUS_CODE.CLIENT_ERROR.BAD_REQUEST).send(API_ERRORS.UNEXPECTED_ERROR);
+        });
     });
 
+    // subscribe
     const subscribeToProgram = `${program.cpp}/subscribe_to`;
     const subscribeToOptions = {};
-
-    const destAddresses = req.body.destination_address.split(',');
     const addressSubscription = [];
-    destAddresses.forEach(a => {
-        addressSubscription.push('-g');
-        addressSubscription.push(a.trim());
+    req.body.stream.forEach(s => {
+        addressSubscription.push('-g', s.dst);
     });
 
     const subscribeToArguments = [
@@ -133,7 +138,7 @@ function runTcpdump(req, res, next) {
         ...addressSubscription
     ];
 
-    console.log(`${subscribeToProgram} ${subscribeToArguments.join(' ')}`);
+    logger('live').info(`${subscribeToProgram} ${subscribeToArguments.join(' ')}`);
 
     const subscribeToProcess = child_process.spawn(subscribeToProgram,
         subscribeToArguments,
@@ -141,7 +146,7 @@ function runTcpdump(req, res, next) {
     );
 
     subscribeToProcess.on('error', (err) => {
-        console.log('error during capture:', err);
+        logger('live').error(`error during subscription:, ${err}`);
     });
 
     subscribeToProcess.on('close', (code) => {
