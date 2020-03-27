@@ -10,7 +10,7 @@ const renderCard = (stream, description, index) => {
     const title = getTitleFor(stream, index);
     return (
         <div className="col-sm-12" key={`stream-${index}`}>
-            <StreamCard key={stream.id} {...stream} pcapID={stream.pcap} title={`${title} ${description}`} />
+            <StreamCard id={stream.id} {...stream} pcapID={stream.pcap} title={`${title} ${description}`} />
         </div>
     );
 }
