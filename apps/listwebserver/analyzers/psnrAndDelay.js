@@ -16,7 +16,7 @@ const getTsFromPacketFile = async (path) => {
     return  JSON.parse(await readFile(`${path}/${CONSTANTS.PACKET_FILE}`, 'utf8'));
 }
 
-const getPnsrAndDelay = async (index, mainPath, refPath) => {
+const getPnsr = async (mainPath, refPath) => {
     const psnrFile = `${mainPath}/psnr.log`;
     const ffmpegCommand = `ffmpeg -hide_banner -i ${mainPath}/frame.png -i ${refPath}/frame.png -lavfi psnr=\"stats_file=${psnrFile}\" -f null -`;
 
@@ -37,10 +37,7 @@ const getPnsrAndDelay = async (index, mainPath, refPath) => {
         .filter(line => line[0] === 'psnr_avg')[0][1];
 
 
-    return {
-        psnr: psnr === 'inf'? 'inf' : parseFloat(psnr),
-        index: index,
-    };
+    return psnr === 'inf'? 'inf' : parseFloat(psnr);
 }
 
 // collect all the dirs with frame.png inside
@@ -66,8 +63,7 @@ const getFrameInfo = async (framePath, index) => {
 const getPsnrList = async (mainDirList, refDirList) => {
 
     const getPsnrPromises = mainDirList.map(
-        async (path, index) => getPnsrAndDelay(
-            index,
+        async (path, index) => getPnsr(
             path,
             refDirList[index]
         )
@@ -76,22 +72,23 @@ const getPsnrList = async (mainDirList, refDirList) => {
 };
 
 const getPsnrMax = async (psnrList) => {
-    return await psnrList.reduce((max, e) =>
-            max.psnr === 'inf'? max :
-                e.psnr === 'inf' ? e :
-                    e.psnr > max.psnr ? e :
-                        max,
+    const max = await psnrList.reduce((max, e) =>
+            max === 'inf'? max :
+                e === 'inf' ? e :
+                    e > max ? e : max,
             psnrList[0]
         );
+
+    return {psnr: max, index: psnrList.findIndex(e => e == max)}
 }
 
 const getPsnrAvg = async (psnrList) => {
-    const sum = await psnrList.reduce((acc, e) => acc += e.psnr, 0);
+    const sum = await psnrList.reduce((acc, e) => acc += e, 0);
     return sum / psnrList.length;
 }
 
 const getPsnrInfCounter = async (psnrList) => {
-    return await psnrList.reduce((counter, e) => counter + (e.psnr === 'inf'? 1 : 0), 0);
+    return await psnrList.reduce((counter, e) => counter + (e === 'inf'? 1 : 0), 0);
 }
 
 const createComparator = async (config) => {
@@ -135,7 +132,6 @@ const createComparator = async (config) => {
             // replace 'inf' with real high but arbitrary value and get average
             const tmp = Array.from(psnrMaxList,
                 e => e.psnr === 'inf'? {index:e.index, psnr: 100}: e);
-            logger('psnr-delay').info(`psnr max tmp: ${JSON.stringify(tmp)}`)
             psnrMax.psnr = await getPsnrAvg(tmp);
         }
         // else, it's all 'inf' and let psnrMax unchanged
