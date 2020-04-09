@@ -5,6 +5,7 @@ import asyncLoader from '../../components/asyncLoader';
 import StreamCard from '../../components/stream/StreamCard';
 import InfoPane from '../../containers/streamPage/components/InfoPane';
 import { getTitleFor } from '../../utils/mediaUtils';
+import { types as workflowTypes } from 'ebu_list_common/workflows/types';
 
 const renderCard = (stream, description, index) => {
     const title = getTitleFor(stream, index);
@@ -16,16 +17,26 @@ const renderCard = (stream, description, index) => {
 }
 
 const ComparisonConfigPane = (props) => {
-    const summary = [
+    var summary = [
         {
-            labelTag: 'comparison.config.media_type',
-            value: props.media_type,
+            labelTag: translateX('comparison.type'),
+            value: props.type,
         },
-        {
-            labelTag: 'comparison.config.comparison_type',
-            value: translateX(`comparison.config.comparison_type.${props.comparison_type}`),
-        }
     ]
+
+    if (props.type == workflowTypes.compareStreams) {
+        summary = summary.concat(
+            [
+                {
+                    labelTag: 'comparison.config.media_type',
+                    value: props.media_type,
+                },
+                {
+                    labelTag: 'comparison.config.comparison_type',
+                    value: translateX(`comparison.config.comparison_type.${props.comparison_type}`),
+                }
+            ]);
+    }
 
     return (
         <div className="col">
