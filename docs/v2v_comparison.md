@@ -19,10 +19,12 @@ The algorithm is composed of 2 steps:
 
 ## Results in the UI
 
-* *Maximum of PSNR*: the maximum of the PSNR between the `ref` frame/field and every frame/field of the `main` sequence
-* *Actual delay*: the difference between the capture timestamps of the `ref` frame/field and the most similar `main` frame/field
-* *Media delay*: actual delay converted in media units
-* *RTP delay*: the difference between the RTP timestamps of the `ref` frame/field and the most similar `main` frame/field
+| Parameter | Explanation |
+| ------ | ------ |
+| *Maximum of PSNR* | the maximum of the PSNR between the `ref` frame/field and every frame/field of the `main` sequence |
+| *Actual delay* | the difference between the capture timestamps of the `ref` frame/field and the most similar `main` frame/field |
+| *Media delay* | actual delay converted in media units |
+| *RTP delay* | the difference between the RTP timestamps of the `ref` frame/field and the most similar `main` frame/field |
 
 ## Notes
 

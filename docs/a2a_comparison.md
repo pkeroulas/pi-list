@@ -12,14 +12,18 @@ A first cross-correlation gives an accurate relative delay (in samples) but max 
 
 Intermediate results:
 
-* *Cross-Correlation Graph* shows a 400-sample-wide window around the peak
-* *Relative Delay* sample shift associated to Maximum Cross-Correlation. Value in milliseconds is derived from sampling rate.
+| Parameter | Explanation |
+| ------ | ------ |
+| *Cross-Correlation Graph* | shows a 400-sample-wide window around the peak |
+| *Relative Delay* | sample shift associated to Maximum Cross-Correlation. Value in milliseconds is derived from sampling rate. |
 
 Displayed results:
 
-* *Maximum Cross-Correlation*: maximum of the cross-correlation array, between [-1, 1], used to determine the transparency (the media is exactly the same) if the peak is above 0.99.
-* *Actual Delay* = Relative Delay + Capture Delay, like for video, actual delay determines if `main` is later (>0) or earlier (<0) than `reference`.
-* *Capture Delay* As opposed to video frames, not all the PCM samples are not timestamped. We only export the capture timestamp of the 1st and last packets. The 2 PCM arrays may be not perfectly simualtaneous. The difference between the capture time of the 1st packets of each stream reflects this possible delay.
+| Parameter | Explanation |
+| ------ | ------ |
+| *Maximum Cross-Correlation* | maximum of the cross-correlation array, between [-1, 1], used to determine the transparency (the media is exactly the same) if the peak is above 0.99. |
+| *Actual Delay* | = Relative Delay + Capture Delay, like for video, actual delay determines if `main` is later (>0) or earlier (<0) than `reference`. |
+| *Capture Delay* | As opposed to video frames, not all the PCM samples are not timestamped. We only export the capture timestamp of the 1st and last packets. The 2 PCM arrays may be not perfectly simualtaneous. The difference between the capture time of the 1st packets of each stream reflects this possible delay. |
 
 ## Limitation:
 

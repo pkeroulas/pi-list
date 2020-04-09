@@ -12,7 +12,7 @@
 
 The idea consists in probing and comparing 2 streams reflecting the same content but at 2 different `logical points` of the network, i.e. multicast groups.
 This type of inter-stream analysis aims at measuring the *propagation delay through the network path* and determine the *transparency of a processing chain*.
-Regarless of the media type, the algorithm takes as input 2 decoded and extracted and decoded streams: the `reference`, which is most likely the earliest and the `main` (terminology inspired by ffmpeg).
+Regarless of the media type, the algorithm takes as input 2 extracted paloads: the `reference`, which is most likely the earliest and the `main` (terminology inspired by ffmpeg).
 Since RTP timestamp can be overwritten by any processing equipment, it doesn't provide a reliable measurement reference and *media-content-based* analysis is preferred.
 
 [Video-to-video: PSNR](./v2v_comparison.md)
