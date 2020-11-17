@@ -40,6 +40,7 @@ const AudioPlayer = props => {
     const onPlayerReady = () => {
         setisLoading(false);
         setHasError(false);
+        waveSurferRef.current.seekTo(props.cursorInitPos);
     };
 
     const onFinishPlay = () => {
@@ -48,6 +49,14 @@ const AudioPlayer = props => {
 
     const onPlayerError = () => {
         setHasError(true);
+    };
+
+    const onInteraction = () => {
+        if (props.onCursorChanged) {
+            const duration = waveSurferRef.current.getDuration();
+            const currentTime = waveSurferRef.current.getCurrentTime();
+            props.onCursorChanged(duration, currentTime);
+        }
     };
 
     useEffect(() => {
@@ -59,6 +68,8 @@ const AudioPlayer = props => {
         wavesurfer.on('ready', onPlayerReady);
         wavesurfer.on('finish', onFinishPlay);
         wavesurfer.on('error', onPlayerError);
+        wavesurfer.on('interaction', onInteraction);
+        //wavesurfer.on('dblclick', onInteraction);
 
         return () => {
             wavesurfer.unAll();
@@ -98,10 +109,14 @@ const AudioPlayer = props => {
 AudioPlayer.propTypes = {
     src: PropTypes.string.isRequired,
     timeline: PropTypes.bool,
+    onCursorChanged: PropTypes.func,
+    cursorInitPos: PropTypes.number,
 };
 
 AudioPlayer.defaultProps = {
     timeline: false,
+    onCursorChanged: null,
+    cursorInitPos: 0,
 };
 
 export default AudioPlayer;

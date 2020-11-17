@@ -9,6 +9,8 @@ import websocket from 'utils/websocket';
 import websocketEventsEnum from 'enums/websocketEventsEnum';
 import notifications from 'utils/notifications';
 
+const nsPerSec = 1000000000;
+
 const getVideo = (config) => {
     return config.main.media_type === 'video'? config.main : config.reference;
 }
@@ -23,9 +25,9 @@ const AVSync = (props) => {
     const audio = getAudio(props.config);
     const toto = props.result.toto;
     const delay = props.result.delay;
-    //console.log( props.audioInfo.statistics.first_packet_ts )
-
     const [frame, setFrame] = useState({timestamp: 0, first_packet_ts: 0});
+    const [videoTs, setVideoTs] = useState(0);
+    const [audioTs, setAudioTs] = useState( props.audioInfo.statistics.first_packet_ts /nsPerSec );
     const [mp3Url, setMp3Url] = useState(api.downloadMp3Url(audio.pcap, audio.stream)); // harcoded 2 channels
 
     const summary = [
@@ -35,9 +37,19 @@ const AVSync = (props) => {
             units: '',
         },
         {
-            labelTag: 'first_packet_ts',
-            value:  frame.first_packet_ts,
-            units: 'ns',
+            labelTag: 'videoTs',
+            value:  videoTs,
+            units: 's',
+        },
+        {
+            labelTag: 'audioTs',
+            value:  audioTs,
+            units: 's',
+        },
+        {
+            labelTag: 'delta',
+            value:  audioTs - videoTs,
+            units: 's',
         },
         {
             labelTag: 'timestamp',
@@ -58,6 +70,20 @@ const AVSync = (props) => {
         }
     }, []);
 
+    const onAudioCursorChanged = (mp3Duration, mp3CurrentTime) => {
+        // cursor time 2 absolute time
+        const rawDuration = (props.audioInfo.statistics.last_packet_ts - props.audioInfo.statistics.first_packet_ts) / nsPerSec + props.audioInfo.media_specific.packet_time / 1000;
+        console.log(`rawDuration: ${rawDuration}`);
+        console.log(`mp3Duration: ${mp3Duration}`);
+        // waveform is mp3 file which is longer than raw
+        const mp3rRawError = mp3Duration - rawDuration;
+        console.log(`mp3rRawError: ${mp3rRawError}`);
+        console.log(`mp3CurrentTime: ${mp3CurrentTime}`);
+        const absTs = mp3CurrentTime + (props.audioInfo.statistics.first_packet_ts / nsPerSec);
+        console.log(`abs time: ${absTs}`)- mp3rRawError;
+        setAudioTs(absTs);
+    }
+
     return (
         <div>
             <InfoPane
@@ -70,10 +96,14 @@ const AVSync = (props) => {
                     pcapID={video.pcap}
                     streamID={video.stream}
                     frames={props.frames}
-                    onFrameChange={(frame) => setFrame(frame)}
+                    onFrameChange={(frame) => setVideoTs(frame.first_packet_ts / nsPerSec)}
+                    // frame Ts should be the middle point between 1st and last pks ts
                 />
                 <AudioPlayer
                     src={mp3Url}
+                    timeline={true}
+                    cursorInitPos={0}
+                    onCursorChanged={onAudioCursorChanged}
                 />
             </Panel>
         </div>
