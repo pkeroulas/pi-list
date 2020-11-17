@@ -556,8 +556,9 @@ router.get('/:pcapID/stream/:streamID/downloadmp3', (req, res) => {
 
     if (fs.fileExists(filePath)) {
         fs.sendFileAsResponse(filePath, res);
-        logger('download-mp3').info('Mp3 file already exists');
+        logger('download-mp3').info(`Mp3 file ${filePath} already exist`);
     } else {
+        logger('download-mp3').info(`Render mp3 file ${filePath}`);
         renderMp3(req, res);
     }
 });
