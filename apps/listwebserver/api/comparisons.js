@@ -63,4 +63,15 @@ router.delete('/:comparisonID/', (req, res) => {
         .catch(() => res.status(HTTP_STATUS_CODE.CLIENT_ERROR.NOT_FOUND).send(API_ERRORS.RESOURCE_NOT_FOUND));
 });
 
+/* update */
+router.post('/:comparisonID/', (req, res) => {
+    const { comparisonID } = req.params;
+    const userId = getUserId(req);
+    console.log(req.body)
+    StreamCompare.find({ owner_id: userId })
+        .exec()
+        .then(data => res.status(HTTP_STATUS_CODE.SUCCESS.OK).send())
+        .catch(() => res.status(HTTP_STATUS_CODE.CLIENT_ERROR.NOT_FOUND).send(API_ERRORS.RESOURCE_NOT_FOUND));
+});
+
 module.exports = router;

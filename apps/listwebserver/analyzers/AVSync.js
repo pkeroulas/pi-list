@@ -2,7 +2,9 @@ const logger = require('../util/logger');
 
 const createComparator = async (config) => {
     return {
-        toto: 'OK'
+        delay: 0,
+        audiopos: 0,
+        frame: 0,
     };
 }
 
