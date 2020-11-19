@@ -31,16 +31,19 @@ const createWaveSurfer = (waveform, timeline) => {
 };
 
 const AudioPlayer = props => {
-    const [isLoading, setisLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
     const [hasError, setHasError] = useState(false);
     const waveSurferRef = useRef(null);
     const waveformRef = useRef(null);
 
     const onPlayerReady = () => {
-        setisLoading(false);
+        setIsLoading(false);
         setHasError(false);
         waveSurferRef.current.seekTo(props.cursorInitPos);
+        if (props.onCursorChanged) {
+            waveSurferRef.current.on('interaction', onInteraction);
+        }
     };
 
     const onFinishPlay = () => {
@@ -52,11 +55,9 @@ const AudioPlayer = props => {
     };
 
     const onInteraction = () => {
-        if (props.onCursorChanged) {
-            const duration = waveSurferRef.current.getDuration();
-            const currentTime = waveSurferRef.current.getCurrentTime();
-            props.onCursorChanged(duration, currentTime);
-        }
+        const duration = waveSurferRef.current.getDuration();
+        const currentTime = waveSurferRef.current.getCurrentTime();
+        props.onCursorChanged(duration, currentTime);
     };
 
     useEffect(() => {
@@ -68,8 +69,6 @@ const AudioPlayer = props => {
         wavesurfer.on('ready', onPlayerReady);
         wavesurfer.on('finish', onFinishPlay);
         wavesurfer.on('error', onPlayerError);
-        wavesurfer.on('interaction', onInteraction);
-        //wavesurfer.on('dblclick', onInteraction);
 
         return () => {
             wavesurfer.unAll();
