@@ -23,7 +23,7 @@ class VideoExplorer extends Component {
                     pcapID={this.props.pcapID}
                     streamID={this.props.streamID}
                     frames={this.props.frames}
-                    onFrameChange={(frame) => {
+                    onFrameChange={(index, frame) => {
                         if (frame) {
                             api.getPacketsFromFrame(this.props.pcapID, this.props.streamID, frame.timestamp)
                                 .then((packets) => {

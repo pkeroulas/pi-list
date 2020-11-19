@@ -22,7 +22,7 @@ class PerFrameAnalysisViewer extends Component {
                         pcapID={this.props.pcapID}
                         streamID={this.props.streamID}
                         frames={this.props.frames}
-                        onFrameChange={frame => {
+                        onFrameChange={(index, frame) => {
                             if (frame) {
                                 this.setState({
                                     first_packet_ts: frame.first_packet_ts,

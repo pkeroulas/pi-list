@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import api from 'utils/api';
 import asyncLoader from 'components/asyncLoader';
 import StreamTimeline from 'components/stream/StreamTimeline'
@@ -7,7 +7,7 @@ import InfoPane from 'containers/streamPage/components/InfoPane';
 import AudioPlayer from 'components/audio/AudioPlayer';
 import websocket from 'utils/websocket';
 import websocketEventsEnum from 'enums/websocketEventsEnum';
-import notifications from 'utils/notifications';
+import notifications from 'utils/notifications'
 
 const nsPerSec = 1000000000;
 
@@ -23,38 +23,27 @@ const AVSync = (props) => {
     console.log(props)
     const video = getVideo(props.config);
     const audio = getAudio(props.config);
-    const toto = props.result.toto;
-    const delay = props.result.delay;
-    const [frame, setFrame] = useState({timestamp: 0, first_packet_ts: 0});
-    const [videoTs, setVideoTs] = useState(0);
-    const [audioTs, setAudioTs] = useState( props.audioInfo.statistics.first_packet_ts /nsPerSec );
     const [mp3Url, setMp3Url] = useState(api.downloadMp3Url(audio.pcap, audio.stream)); // harcoded 2 channels
+    //TODO: init state from previous result
+    const [videoCursor, setVideoCursor] = useState({ts: 0, position: 0});
+    const [audioCursor, setAudioCursor] = useState({ts: 0, position: 0});
+    const [delay, setDelay] = useState(props.result.delay);
 
     const summary = [
         {
-            labelTag: 'comparison.result.cross_correlation_max',
-            value:  toto,
-            units: '',
-        },
-        {
-            labelTag: 'videoTs',
-            value:  videoTs,
+            labelTag: 'frameTs',
+            value:  videoCursor.ts,
             units: 's',
         },
         {
             labelTag: 'audioTs',
-            value:  audioTs,
+            value:  audioCursor.ts,
             units: 's',
         },
         {
-            labelTag: 'delta',
-            value:  audioTs - videoTs,
+            labelTag: 'delay',
+            value:  delay,
             units: 's',
-        },
-        {
-            labelTag: 'timestamp',
-            value:  frame.timestamp,
-            units: '',
         },
     ];
 
@@ -70,19 +59,54 @@ const AVSync = (props) => {
         }
     }, []);
 
+    const onFrameChange = (index, frame) => {
+        // frame Ts should be the middle point between 1st and last pks ts
+        console.log(`frame index: ${index}`)
+        setVideoCursor({
+            ts: (frame.first_packet_ts + frame.last_packet_ts) / nsPerSec / 2,
+            position: index,
+        });
+    }
+
     const onAudioCursorChanged = (mp3Duration, mp3CurrentTime) => {
+        console.log(`audio ts: ${mp3CurrentTime}`)
         // cursor time 2 absolute time
         const rawDuration = (props.audioInfo.statistics.last_packet_ts - props.audioInfo.statistics.first_packet_ts) / nsPerSec + props.audioInfo.media_specific.packet_time / 1000;
-        console.log(`rawDuration: ${rawDuration}`);
-        console.log(`mp3Duration: ${mp3Duration}`);
         // waveform is mp3 file which is longer than raw
-        const mp3rRawError = mp3Duration - rawDuration;
-        console.log(`mp3rRawError: ${mp3rRawError}`);
+        const mp3RawError = mp3Duration - rawDuration;
+        const absTime = mp3CurrentTime - mp3RawError + (props.audioInfo.statistics.first_packet_ts / nsPerSec);
+        /*
+        console.log(`mp3Duration - rawDuration = ${mp3Duration} - ${rawDuration} = ${mp3RawError}`);
         console.log(`mp3CurrentTime: ${mp3CurrentTime}`);
-        const absTs = mp3CurrentTime + (props.audioInfo.statistics.first_packet_ts / nsPerSec);
-        console.log(`abs time: ${absTs}`)- mp3rRawError;
-        setAudioTs(absTs);
+        console.log(`absTime: ${absTime}`);
+        */
+
+        setAudioCursor({
+            ts: absTime,
+            position: mp3CurrentTime / mp3Duration,
+        });
     }
+
+    useEffect(() => {
+        const delay = audioCursor.ts - videoCursor.ts;
+        const result = {
+            delay: delay,
+            audioCursor: audioCursor,
+            videoCursor: videoCursor,
+        };
+        setDelay(delay);
+        console.log(`R: ${result}`);
+
+        api.postComparison(props.id, {
+            id: props.id,
+            _id: props._id,
+            name: props.name,
+            date: props.date,
+            type: props.type,
+            config: props.config,
+            result: result,
+        });
+    }, [audioCursor, videoCursor]);
 
     return (
         <div>
@@ -96,8 +120,7 @@ const AVSync = (props) => {
                     pcapID={video.pcap}
                     streamID={video.stream}
                     frames={props.frames}
-                    onFrameChange={(frame) => setVideoTs(frame.first_packet_ts / nsPerSec)}
-                    // frame Ts should be the middle point between 1st and last pks ts
+                    onFrameChange={onFrameChange}
                 />
                 <AudioPlayer
                     src={mp3Url}
@@ -118,7 +141,6 @@ export default asyncLoader(AVSync, {
         },
         audioInfo: props => {
             const audio = getAudio(props.config)
-            //api.renderMp3(audio.pcap, audio.stream, "0,1")
             return api.getStreamInformation(audio.pcap, audio.stream);
         },
     }

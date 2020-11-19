@@ -91,7 +91,7 @@ class StreamTimeline extends Component {
         this.setState({ frameIndex, currentFrame, currentFramesWindow });
 
         if (isFunction(this.props.onFrameChange)) {
-            this.props.onFrameChange(currentFrame);
+            this.props.onFrameChange(frameIndex, currentFrame);
         }
     }
 
