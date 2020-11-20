@@ -24,9 +24,8 @@ const AVSync = (props) => {
     const video = getVideo(props.config);
     const audio = getAudio(props.config);
     const [mp3Url, setMp3Url] = useState(api.downloadMp3Url(audio.pcap, audio.stream)); // harcoded 2 channels
-    //TODO: init state from previous result
-    const [videoCursor, setVideoCursor] = useState({ts: 0, position: 0});
-    const [audioCursor, setAudioCursor] = useState({ts: 0, position: 0});
+    const [videoCursor, setVideoCursor] = useState(props.result.videoCursor);
+    const [audioCursor, setAudioCursor] = useState(props.result.audioCursor);
     const [delay, setDelay] = useState(props.result.delay);
 
     const summary = [
@@ -88,14 +87,19 @@ const AVSync = (props) => {
     }
 
     useEffect(() => {
-        const delay = audioCursor.ts - videoCursor.ts;
+        const diff = audioCursor.ts - videoCursor.ts;
         const result = {
-            delay: delay,
+            delay: diff,
             audioCursor: audioCursor,
             videoCursor: videoCursor,
         };
-        setDelay(delay);
-        console.log(`R: ${result}`);
+        if (delay === diff) {
+            return;
+        }
+
+        setDelay(diff);
+        console.log(`Res:`);
+        console.log(result);
 
         api.postComparison(props.id, {
             id: props.id,
@@ -120,12 +124,13 @@ const AVSync = (props) => {
                     pcapID={video.pcap}
                     streamID={video.stream}
                     frames={props.frames}
+                    initFrame={props.result.videoCursor.position}
                     onFrameChange={onFrameChange}
                 />
                 <AudioPlayer
                     src={mp3Url}
                     timeline={true}
-                    cursorInitPos={0}
+                    cursorInitPos={props.result.audioCursor.position}
                     onCursorChanged={onAudioCursorChanged}
                 />
             </Panel>

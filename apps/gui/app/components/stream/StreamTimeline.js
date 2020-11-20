@@ -10,11 +10,13 @@ const propTypes = {
     pcapID: PropTypes.string.isRequired,
     streamID: PropTypes.string.isRequired,
     frames: PropTypes.arrayOf(PropTypes.object).isRequired,
-    onFrameChange: PropTypes.func
+    onFrameChange: PropTypes.func,
+    initFrame: PropTypes.number,
 };
 
 const defaultProps = {
-    onFrameChange: null
+    onFrameChange: null,
+    initFrame: 0
 };
 
 class StreamTimeline extends Component {
@@ -22,8 +24,8 @@ class StreamTimeline extends Component {
         super(props);
 
         this.state = {
-            frameIndex: 0,
-            currentFrame: this.props.frames[0],
+            frameIndex: this.props.initFrame,
+            currentFrame: this.props.frames[this.props.initFrame],
             currentFramesWindow: [],
             totalFrame: this.props.frames.length
         };
@@ -33,8 +35,7 @@ class StreamTimeline extends Component {
 
     componentDidMount() {
         document.addEventListener('keydown', throttle(this.onNavigationKeyDown, 180));
-
-        this.updateFrameNavBar(0, this.props.frames.length);
+        this.updateFrameNavBar(this.props.initFrame, this.props.frames.length);
     }
 
     componentWillUnmount() {

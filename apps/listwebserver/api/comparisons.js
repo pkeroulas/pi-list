@@ -67,8 +67,9 @@ router.delete('/:comparisonID/', (req, res) => {
 router.post('/:comparisonID/', (req, res) => {
     const { comparisonID } = req.params;
     const userId = getUserId(req);
-    console.log(req.body)
-    StreamCompare.find({ owner_id: userId })
+    const comparison = req.body;
+    console.log(comparison)
+    StreamCompare.findOneAndUpdate({ id: comparisonID }, comparison, { new: true })
         .exec()
         .then(data => res.status(HTTP_STATUS_CODE.SUCCESS.OK).send())
         .catch(() => res.status(HTTP_STATUS_CODE.CLIENT_ERROR.NOT_FOUND).send(API_ERRORS.RESOURCE_NOT_FOUND));

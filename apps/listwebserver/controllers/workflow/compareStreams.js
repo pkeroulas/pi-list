@@ -50,6 +50,7 @@ const getConfig = async (inputConfig, folder) => {
     } else if (((main.media_type === 'audio') && (ref.media_type === 'video')) ||
         ((main.media_type === 'video') && (ref.media_type === 'audio'))) {
         config.comparison_type = COMPARISON_TYPES.AV_SYNC;
+        config.media_type = 'A/V';
     } else {
         throw Error(`Unsupported media type: ${main.media_type} + ${ref.media_type}`);
     }
