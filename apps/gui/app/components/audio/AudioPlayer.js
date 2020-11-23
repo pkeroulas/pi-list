@@ -13,17 +13,20 @@ const createWaveSurfer = (waveform, timeline) => {
     }
 
     const wavesurfer = WaveSurfer.create({
-        container: waveform,
-        waveColor: '#5086d8',
-        progressColor: '#2347fc',
-        splitChannels: true,
         autoCenter: true,
+        backgroundColor: '#89B',
         barWidth: 1,
-        normalize: true,
-        hideScrollbar: false,
+        container: waveform,
+        cursorColor: '#800',
+        cursorWidth: 3,
         height: 80,
-        cursorWidth: 2,
+        hideScrollbar: false,
+        normalize: true,
         plugins,
+        progressColor: '#2347fc',
+        scrollParent: true,
+        splitChannels: true,
+        waveColor: '#5086d8',
         xhr: { withCredentials: true },
     });
 
