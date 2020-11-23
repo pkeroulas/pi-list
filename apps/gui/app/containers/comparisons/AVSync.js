@@ -26,7 +26,7 @@ const AVSync = (props) => {
     const [mp3Url, setMp3Url] = useState(api.downloadMp3Url(audio.pcap, audio.stream)); // harcoded 2 channels
     const [videoCursor, setVideoCursor] = useState(props.result.videoCursor);
     const [audioCursor, setAudioCursor] = useState(props.result.audioCursor);
-    const [delay, setDelay] = useState(props.result.delay);
+    const [delay, setDelay] = useState(props.result.delay.actual);
 
     const summary = [
         {
@@ -41,8 +41,8 @@ const AVSync = (props) => {
         },
         {
             labelTag: 'comparison.result.AVDelay',
-            value:  delay.toFixed(6),
-            units: 's',
+            value:  (delay / 1000).toFixed(3),
+            units: 'ms',
         },
     ];
 
@@ -87,11 +87,12 @@ const AVSync = (props) => {
     }
 
     useEffect(() => {
-        const diff = audioCursor.ts - videoCursor.ts;
+        const diff = (audioCursor.ts - videoCursor.ts) * 1000000; // convert s to us
         const result = {
-            delay: diff,
+            delay: {actual: diff},
             audioCursor: audioCursor,
             videoCursor: videoCursor,
+            transparency: false,
         };
         if (delay === diff) {
             return;
