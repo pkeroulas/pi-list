@@ -7,7 +7,7 @@ import InfoPane from 'containers/streamPage/components/InfoPane';
 import AudioPlayer from 'components/audio/AudioPlayer';
 import websocket from 'utils/websocket';
 import websocketEventsEnum from 'enums/websocketEventsEnum';
-import notifications from 'utils/notifications'
+import notifications from 'utils/notifications';
 
 const nsPerSec = 1000000000;
 
@@ -30,18 +30,18 @@ const AVSync = (props) => {
 
     const summary = [
         {
-            labelTag: 'frameTs',
-            value:  videoCursor.ts,
+            labelTag: 'headings.video',
+            value:  videoCursor.ts.toFixed(6),
             units: 's',
         },
         {
-            labelTag: 'audioTs',
-            value:  audioCursor.ts,
+            labelTag: 'headings.audio',
+            value:  audioCursor.ts.toFixed(6),
             units: 's',
         },
         {
-            labelTag: 'delay',
-            value:  delay,
+            labelTag: 'comparison.result.AVDelay',
+            value:  delay.toFixed(6),
             units: 's',
         },
     ];
