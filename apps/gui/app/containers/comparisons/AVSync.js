@@ -28,7 +28,10 @@ const AVSync = (props) => {
     const [audioCursor, setAudioCursor] = useState(props.result.audioCursor);
     const [delay, setDelay] = useState(props.result.delay.actual);
 
+    const comment = `Audio is ${delay == 0? 'in sync with' : delay < 0? 'earlier' : 'later'} than video`;
+
     const summary = [
+        /* debug
         {
             labelTag: 'headings.video',
             value:  videoCursor.ts.toFixed(6),
@@ -39,6 +42,7 @@ const AVSync = (props) => {
             value:  audioCursor.ts.toFixed(6),
             units: 's',
         },
+        */
         {
             labelTag: 'comparison.result.AVDelay',
             value:  (delay / 1000).toFixed(3),
@@ -68,17 +72,14 @@ const AVSync = (props) => {
     }
 
     const onAudioCursorChanged = (mp3Duration, mp3CurrentTime) => {
-        console.log(`audio ts: ${mp3CurrentTime}`)
         // cursor time 2 absolute time
         const rawDuration = (props.audioInfo.statistics.last_packet_ts - props.audioInfo.statistics.first_packet_ts) / nsPerSec + props.audioInfo.media_specific.packet_time / 1000;
         // waveform is mp3 file which is longer than raw
         const mp3RawError = mp3Duration - rawDuration;
         const absTime = mp3CurrentTime - mp3RawError + (props.audioInfo.statistics.first_packet_ts / nsPerSec);
-        /*
-        console.log(`mp3Duration - rawDuration = ${mp3Duration} - ${rawDuration} = ${mp3RawError}`);
-        console.log(`mp3CurrentTime: ${mp3CurrentTime}`);
-        console.log(`absTime: ${absTime}`);
-        */
+        console.log(`mp3Duration - rawDuration = ${mp3Duration} - ${rawDuration} = ${mp3RawError}s`);
+        console.log(`mp3CurrentTime: ${mp3CurrentTime} s`);
+        console.log(`absTime: ${absTime} s`);
 
         setAudioCursor({
             ts: absTime,
@@ -119,6 +120,7 @@ const AVSync = (props) => {
                 icon='alarm'
                 headingTag='headings.AVSync'
                 values={summary}
+                comment={comment}
             />
             <Panel className="lst-stream-info-tab">
                 <StreamTimeline
@@ -137,6 +139,8 @@ const AVSync = (props) => {
             </Panel>
         </div>
     );
+        //TODO: timeline with sliders
+        // https://reactjsexample.com/a-timeline-range-slider-with-react-js/
 };
 
 export default asyncLoader(AVSync, {
