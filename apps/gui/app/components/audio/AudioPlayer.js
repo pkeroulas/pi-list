@@ -4,6 +4,7 @@ import WaveSurfer from 'wavesurfer.js';
 import TimelinePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.timeline.min.js';
 import Button from '../common/Button';
 import Loader from '../common/Loader';
+import Slider from '../common/Slider';
 import { translateC } from '../../utils/translation';
 
 const createWaveSurfer = (waveform, timeline) => {
@@ -84,6 +85,10 @@ const AudioPlayer = props => {
         setIsPlaying(prevIsPlaying => !prevIsPlaying);
     };
 
+    const onZoom = (v) => {
+        waveSurferRef.current.zoom(v);
+    };
+
     const buttonLabel = isPlaying ? translateC('audio_player.pause') : translateC('audio_player.play');
     const buttonType = isPlaying || hasError ? 'danger' : 'info';
     const buttonIcon = isPlaying ? 'pause' : 'play arrow';
@@ -95,14 +100,22 @@ const AudioPlayer = props => {
             <div className="wave" />
             <div className="wave-timeline" />
             {!isLoading && (
-                <Button
-                    type={buttonType}
-                    label={buttonLabel}
-                    icon={buttonIcon}
-                    disabled={buttonDisabled}
-                    outline
-                    onClick={play}
-                />
+                <div className="row center">
+                    <Button
+                        type={buttonType}
+                        label={buttonLabel}
+                        icon={buttonIcon}
+                        disabled={buttonDisabled}
+                        outline
+                        onClick={play}
+                    />
+                    <Slider
+                        min={0}
+                        max={10000}
+                        type="zoom"
+                        onChange={v => onZoom(parseInt(v))}
+                    />
+                </div>
             )}
         </div>
     );
