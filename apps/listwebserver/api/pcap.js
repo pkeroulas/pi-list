@@ -549,7 +549,7 @@ router.get('/:pcapID/stream/:streamID/downloadmp3', (req, res) => {
     const { pcapID, streamID } = req.params;
     var { channels } = req.query;
     if (channels === undefined || channels === '') {
-        channels = '0,1'; // keep the 2 first channels by default
+        channels = '0'; // keep first channel by default
     }
     const folderPath = `${getUserFolder(req)}/${pcapID}/${streamID}`;
     const filePath = `${folderPath}/audio-${channels}.mp3`;
