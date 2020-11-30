@@ -46,7 +46,7 @@ const AudioPlayer = props => {
         setHasError(false);
         waveSurferRef.current.seekTo(props.cursorInitPos);
         if (props.onCursorChanged) {
-            waveSurferRef.current.on('interaction', onInteraction);
+            waveSurferRef.current.on('seek', onSeek);
         }
     };
 
@@ -58,7 +58,7 @@ const AudioPlayer = props => {
         setHasError(true);
     };
 
-    const onInteraction = () => {
+    const onSeek = () => {
         const duration = waveSurferRef.current.getDuration();
         const currentTime = waveSurferRef.current.getCurrentTime();
         props.onCursorChanged(duration, currentTime);
