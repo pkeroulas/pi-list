@@ -4,7 +4,7 @@
         width: 100%;
     }
     &.selected {
-        border-bottom: 4px solid $blue;
+        border: 2px solid $blue;
     }
 }
 
@@ -51,7 +51,7 @@
         background: $nord1;
     }
     .lst-timeline-progress {
-        height: 4px;
+        height: 16px;
         background-color: $blue;
         transition: $fast-transition-time width;
     }

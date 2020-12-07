@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useReducer } from 'react';
 import api from 'utils/api';
 import asyncLoader from 'components/asyncLoader';
-import StreamTimeline from 'components/stream/StreamTimeline'
+import VideoTimeline from 'components/stream/VideoTimeline'
 import Panel from 'components/common/Panel';
 import InfoPane from 'containers/streamPage/components/InfoPane';
 import AudioPlayer from 'components/audio/AudioPlayer';
@@ -65,10 +65,12 @@ const AVSync = (props) => {
     const onFrameChange = (index, frame) => {
         // frame Ts should be the middle point between 1st and last pks ts
         console.log(`frame index: ${index}`)
-        setVideoCursor({
-            ts: (frame.first_packet_ts + frame.last_packet_ts) / nsPerSec / 2,
-            position: index,
-        });
+        if (index > 0) {
+            setVideoCursor({
+                ts: (frame.first_packet_ts + frame.last_packet_ts) / nsPerSec / 2,
+                position: index,
+            });
+        }
     }
 
     const onAudioCursorChanged = (mp3Duration, mp3CurrentTime) => {
@@ -123,11 +125,11 @@ const AVSync = (props) => {
                 comment={comment}
             />
             <Panel className="lst-stream-info-tab">
-                <StreamTimeline
+                <VideoTimeline
                     pcapID={video.pcap}
                     streamID={video.stream}
                     frames={props.frames}
-                    initFrame={props.result.videoCursor.position}
+                    initFrameIndex={props.result.videoCursor.position}
                     onFrameChange={onFrameChange}
                 />
                 <AudioPlayer
