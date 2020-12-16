@@ -47,6 +47,8 @@ const AudioPlayer = props => {
         waveSurferRef.current.seekTo(props.cursorInitPos);
         if (props.onCursorChanged) {
             waveSurferRef.current.on('seek', onSeek);
+            waveSurferRef.current.on('pause', onSeek);
+            onSeek();
         }
     };
 
