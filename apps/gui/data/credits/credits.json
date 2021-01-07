@@ -1,5 +1,5 @@
 {
-    "@vitalets/google-translate-api@3.0.0": {
+    "@vitalets/google-translate-api@4.0.0": {
         "licenses": "MIT",
         "repository": "https://github.com/vitalets/google-translate-api",
         "licenseUrl": "https://github.com/vitalets/google-translate-api/raw/master/LICENSE",

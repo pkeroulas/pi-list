@@ -19,7 +19,7 @@ const renderCard = (stream, description, index) => {
 const ComparisonConfigPane = (props) => {
     var summary = [
         {
-            labelTag: translateX('comparison.type'),
+            labelTag: 'comparison.type',
             value: props.type,
         },
     ]
@@ -46,7 +46,7 @@ const ComparisonConfigPane = (props) => {
                 values={summary}
             />
             <InfoPane
-                headingTag={translateX('comparison.config.reference')}
+                headingTag='comparison.config.reference'
                 icon='note'
                 values={[
                     {
@@ -64,7 +64,7 @@ const ComparisonConfigPane = (props) => {
             }
             <InfoPane
                 icon='note'
-                headingTag={translateX('comparison.config.main')}
+                headingTag='comparison.config.main'
                 values={[
                     {
                         labelTag: 'workflow.import_networkcapture_btn',

@@ -19,29 +19,24 @@ const AVSync = (props) => {
     const [delay, setDelay] = useState(props.result.delay);
     const comment = `Audio is ${delay.pkt == 0? 'in sync with' : delay.pkt < 0? 'earlier' : 'later'} than video`;
 
-    // TODO: fix labelTags
     const summary = [
         {
-            //labelTag: 'comparison.result.video.marker',
-            labelTag: 'Video Cursor',
+            labelTag: 'audio_player.cursor',
             value: videoCursor.position + 1,
             units: video.scan_type === 'interlaced'? 'fields' : 'frames',
         },
         {
-            //labelTag: 'comparison.result.audio.marker',
-            labelTag: 'Audio Cursor',
+            labelTag: 'audio_player.cursor',
             value: (audioCursor.pktTs - audio.first_packet_ts / nsPerSec).toFixed(3),
             units: 's',
         },
         {
-            //labelTag: 'comparison.result.AVDelay',
-            labelTag: 'A/V delay (capture time)',
+            labelTag: 'comparison.result.AVDelayPkt',
             value:  (delay.pkt / 1000).toFixed(3),
             units: `ms (+/-0.5 ${video.scan_type === 'interlaced'? 'fields' : 'frames'})`,
         },
         {
-            //labelTag: 'comparison.result.AVDelay',
-            labelTag: 'A/V delay (RTP time)',
+            labelTag: 'comparison.result.AVDelayRtp',
             value:  (delay.rtp / 1000).toFixed(3),
             units: 'ms',
         },
