@@ -7,12 +7,13 @@ import InfoPane from 'containers/streamPage/components/InfoPane';
 import AudioPlayer from 'components/audio/AudioPlayer';
 import websocket from 'utils/websocket';
 import websocketEventsEnum from 'enums/websocketEventsEnum';
-
-const nsPerSec = 1000000000;
+import { getVideoFromConfig, getAudioFromConfig, getVideoCursor, getAudioCursor, getAVDelay } from 'utils/AVSync.js';
+import { nsPerSec, usPerSec, msPerSec } from 'utils/constants';
 
 const AVSync = (props) => {
-    const video = props.config.main.media_type === 'video'? props.config.main : props.config.reference;
-    const audio = props.config.main.media_type === 'audio'? props.config.main : props.config.reference;
+    const video = getVideoFromConfig(props.config);
+    const audio = getAudioFromConfig(props.config);
+
     const [mp3Url, setMp3Url] = useState(api.downloadMp3Url(audio.pcap, audio.stream)); // with 2 channels by default
     const [videoCursor, setVideoCursor] = useState(props.result.videoCursor);
     const [audioCursor, setAudioCursor] = useState(props.result.audioCursor);
@@ -58,87 +59,17 @@ const AVSync = (props) => {
         if (index < 0) {
             return;
         }
-
-        // frame Ts is middle point between 1st and last pks ts
-        const absTime = (frame.first_packet_ts + frame.last_packet_ts) / nsPerSec / 2;
-
-        // compute RTP ts from pkt ts - deltaPktVsRtp
-        // deltaPktVsRtp which is logged at the begining of next frame
-        const margin_nsec = 1000000;
-        api.getDeltaPacketTimeVsRtpTimeRaw(
-            video.pcap,
-            video.stream,
-            frame.last_packet_ts,
-            frame.last_packet_ts + margin_nsec)
-        .then(e => {
-            const deltaPktVsRtp = (e.length > 0)? e[0].value/nsPerSec : NaN; // e in ns
-            setVideoCursor({
-                pktTs: absTime,
-                rtpTs: absTime - deltaPktVsRtp,
-                position: index,
-            });
-        });
+        getVideoCursor(frame, index, video)
+        .then(e => {setVideoCursor(e);});
     }
 
     const onAudioCursorChanged = (mp3Duration, mp3CurrentTime) => {
-        // cursor time -> absolute time
-        const rawDuration = (audio.last_packet_ts - audio.first_packet_ts) / nsPerSec
-            + audio.packet_time / 1000;
-        // in case mp3 duration defers from raw
-        const mp3RawError = mp3Duration - rawDuration;
-        const absTime = mp3CurrentTime - mp3RawError
-            + (audio.first_packet_ts / nsPerSec);
-
-        // console.log(`mp3Duration - rawDuration = ${mp3Duration} - ${rawDuration} = ${mp3RawError}s`);
-        // console.log(`mp3CurrentTime: ${mp3CurrentTime} s`);
-        // console.log(`absTime: ${absTime} s`);
-
-        // compute RTP ts from pkt ts - deltaPktVsRtp
-        const margin_sec = audio.packet_time / 1000 / 2;
-        api.getAudioPktTsVsRtpTs(
-            audio.pcap,
-            audio.stream,
-            (absTime - margin_sec) * 1000000000,
-            (absTime + margin_sec) * 1000000000)
-        .then(e => {
-            const deltaPktVsRtp = (e.length > 0)? e[0].value/1000000 : NaN; // e in us
-            setAudioCursor({
-                pktTs: absTime,
-                rtpTs: absTime - deltaPktVsRtp,
-                position: mp3CurrentTime / mp3Duration,
-            });
-        })
+        getAudioCursor(mp3Duration, mp3CurrentTime, audio)
+        .then(e => {setAudioCursor(e);});
     }
 
-    // compute delay and post to server
     useEffect(() => {
-        const result = {
-            delay: {
-                pkt: (audioCursor.pktTs - videoCursor.pktTs) * 1000000, // convert s to us
-                rtp: (audioCursor.rtpTs - videoCursor.rtpTs) * 1000000,
-                actual: (audioCursor.pktTs - videoCursor.pktTs) * 1000000, // for comparision summary
-            },
-            audioCursor: audioCursor,
-            videoCursor: videoCursor,
-            transparency: false,
-        };
-        if (delay === result.delay.pkt) {
-            return;
-        }
-
-        setDelay(result.delay);
-        console.log(`Res:`);
-        console.log(result);
-
-        api.postComparison(props.id, {
-            id: props.id,
-            _id: props._id,
-            name: props.name,
-            date: props.date,
-            type: props.type,
-            config: props.config,
-            result: result,
-        });
+        setDelay(getAVDelay(props, audioCursor, videoCursor, delay));
     }, [audioCursor, videoCursor]);
 
     return (
