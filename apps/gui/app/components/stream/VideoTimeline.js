@@ -112,7 +112,7 @@ const VideoTimeline = (props) => {
                                 selected: frame.timestamp === props.frames[frameIndex].timestamp
                             }
                         );
-                        const frameImageURL = api.getImageFromStream(pcapID, streamID, frame.timestamp);
+                        const frameImageURL = api.getThumbnailFromStream(pcapID, streamID, frame.timestamp);
 
                         return (
                             <div className={imageClassName} key={frame.timestamp}>

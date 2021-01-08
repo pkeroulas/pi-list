@@ -66,6 +66,7 @@ aforementioned _API_.
   * [`Get metadata of all frames`](#get-metadata-of-all-frames)
   * [`Get all packet metadata for a frame`](#get-packet-of-all-frames)
   * [`Get a PNG frame`](#get-a-png-frames)
+  * [`Get a JPG thumbnail`](#get-a-jpg-thumbnail)
   * [`Render mp3`](#render-mp3)
   * [`Get rendered mp3`](#get-rendered-mp3)
   * [`Get ancillary decoded payload`](#get-ancillary-decoded-payload)
@@ -405,6 +406,14 @@ aforementioned _API_.
 - Response:
   * HTTP/200:
     + Content-Type: `image/png`
+    + Body: `<rawData>`
+
+##### Get a JPG thumbnail
+- Path: `/api/pcap/<pcapId>/stream/<streamId>/frame/<frameId>/jpg?token=Bearer+<token>`
+- Method: `GET`
+- Response:
+  * HTTP/200:
+    + Content-Type: `image/jpg`
     + Body: `<rawData>`
 
 ##### Render mp3

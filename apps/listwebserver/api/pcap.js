@@ -478,17 +478,25 @@ router.get('/:pcapID/stream/:streamID/frames', (req, res) => {
 /* Get packets.json file for a frame */
 router.get('/:pcapID/stream/:streamID/frame/:frameID/packets', (req, res) => {
     const { pcapID, streamID, frameID } = req.params;
-    const packetsFilePath = `${getUserFolder(req)}/${pcapID}/${streamID}/${frameID}/packets.json`;
+    const filePath = `${getUserFolder(req)}/${pcapID}/${streamID}/${frameID}/${CONSTANTS.PACKET_FILE}`;
 
-    fs.sendFileAsResponse(packetsFilePath, res);
+    fs.sendFileAsResponse(filePath, res);
 });
 
 /* Get png file for a frame */
 router.get('/:pcapID/stream/:streamID/frame/:frameID/png', (req, res) => {
     const { pcapID, streamID, frameID } = req.params;
-    const pngFilePath = `${getUserFolder(req)}/${pcapID}/${streamID}/${frameID}/frame.png`;
+    const filePath = `${getUserFolder(req)}/${pcapID}/${streamID}/${frameID}/${CONSTANTS.PNG_FILE}`;
 
-    fs.sendFileAsResponse(pngFilePath, res);
+    fs.sendFileAsResponse(filePath, res);
+});
+
+/* Get jpg thumbnail for a frame */
+router.get('/:pcapID/stream/:streamID/frame/:frameID/jpg', (req, res) => {
+    const { pcapID, streamID, frameID } = req.params;
+    const filePath = `${getUserFolder(req)}/${pcapID}/${streamID}/${frameID}/${CONSTANTS.JPG_FILE}`;
+
+    fs.sendFileAsResponse(filePath, res);
 });
 
 /*** Audio ***/

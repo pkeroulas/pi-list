@@ -250,6 +250,9 @@ const api = {
     getImageFromStream: (pcapID, streamID, timestamp) =>
         getAuthUrl(`${API_URL}/pcap/${pcapID}/stream/${streamID}/frame/${timestamp}/png`),
 
+    getThumbnailFromStream: (pcapID, streamID, timestamp) =>
+        getAuthUrl(`${API_URL}/pcap/${pcapID}/stream/${streamID}/frame/${timestamp}/jpg`),
+
     downloadMp3Url: (pcapID, streamID, channelsString) =>
         getAuthUrl(
             `${API_URL}/pcap/${pcapID}/stream/${streamID}/downloadmp3${
