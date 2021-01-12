@@ -124,7 +124,7 @@ const AudioPlayer = props => {
 };
 
 AudioPlayer.propTypes = {
-    src: PropTypes.string.isRequired,
+    src: PropTypes.object.isRequired,
     timeline: PropTypes.bool,
     onCursorChanged: PropTypes.func,
     cursorInitPos: PropTypes.number,
