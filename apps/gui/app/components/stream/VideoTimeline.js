@@ -21,43 +21,7 @@ const defaultProps = {
 };
 
 const VideoTimeline = (props) => {
-    const [frameIndex, setFrameIndex] = useState(props.initFrameIndex);
-    const lastFrameIndex = props.frames.length - 1;
-    const streamPercentage = ((frameIndex) / (props.frames.length - 1)) * 100;
-
-    // determine visible frames windows
-    let framesWindow = [];
-    const VISIBLE_WINDOW_SIZE = 6;
-    const WINDOW_SIZE = 8;
-    if (frameIndex >= 0 && frameIndex < VISIBLE_WINDOW_SIZE - 3) { // beginning
-        framesWindow = props.frames
-            .slice(0, WINDOW_SIZE)
-            .map((frame, index) => {
-                return Object.assign({}, frame, {
-                    hide: (index === VISIBLE_WINDOW_SIZE || index === VISIBLE_WINDOW_SIZE + 1),
-                    index: index,
-                });
-            });
-    } else if (frameIndex > (lastFrameIndex - (VISIBLE_WINDOW_SIZE - 2)) && frameIndex <= lastFrameIndex) { // end
-        framesWindow = props.frames
-            .slice((lastFrameIndex - 1) - VISIBLE_WINDOW_SIZE, lastFrameIndex + 1)
-            .map((frame, index) => {
-                return Object.assign({}, frame, {
-                    hide: (index === 0 || index === 1),
-                    index: lastFrameIndex - 1 + index,
-                });
-            });
-
-    } else { // middle
-        framesWindow = props.frames
-            .slice(frameIndex - 3, frameIndex + (VISIBLE_WINDOW_SIZE - 1))
-            .map((frame, index) => {
-                return Object.assign({}, frame, {
-                    hide: (index === 0 || index === VISIBLE_WINDOW_SIZE + 1),
-                    index: frameIndex - 3 + index,
-                });
-            });
-    }
+    const [frameIndex, setFrameindex] = useState(props.initFrameIndex);
 
     useEffect(() => {
         if (isFunction(props.onFrameChange)) {
@@ -66,67 +30,45 @@ const VideoTimeline = (props) => {
         }
     }, [frameIndex]);
 
-/*
-    //in constructor: this.onNavigationKeyDown = this.onNavigationKeyDown.bind(this);
-    componentDidMount() {
-        document.addEventListener('keydown', throttle(onNavigationKeyDown, 180));
-        getFrameWindow(props.initFrameIndex, props.frames.length);
-    }
+    const onClick = (event) => {
+        setFrameindex(parseInt(event.target.alt));
+    };
 
-    componentWillUnmount() {
-        document.removeEventListener('keydown', onNavigationKeyDown);
-    }
-    onNavigationKeyDown(event) {
-        if (event.key === 'ArrowLeft' && frameIndex > 0) {
-            setFrameIndex(frameIndex - 1);
-        } else if (event.key === 'ArrowRight' && frameIndex < lastFrameIndex) {
-            setFrameIndex(frameIndex + 1);
-        }
-    }
-*/
-
-    const onImageClick = (event) => {
-        setFrameIndex(parseInt(event.target.alt));
-    }
-
-    const onProgressClick = (event) => {
-        event.persist();
-        const pointerX = event.clientX;
-        const barRect = document.getElementById('progress').getBoundingClientRect();
-        const pos = (pointerX - barRect.x) / barRect.width; // [0..1]
-        setFrameIndex(parseInt(pos * lastFrameIndex));
-    }
-
-
+    /* would have been good to have arrow buttons in
+     * "lst-video-timeline" but click events would conflict */
+    // <a className="prev" onClick={onClick()}>&#10094;</a>
+    // <a className="next" onClick=w{onNext()}>&#10095;</a>
     if (props.frames.length > 0) {
         return (
-            <div className="lst-stream-timeline">
-                <div className="row">
-                    {framesWindow.map((frame) => {
-                        const { pcapID, streamID } = props;
-                        const imageClassName = classNames(
-                            'col-xs-2',
-                            'lst-stream-timeline-image',
-                            {
-                                'lst-hide': frame.hide,
-                                selected: frame.timestamp === props.frames[frameIndex].timestamp
-                            }
-                        );
-                        const frameImageURL = api.getThumbnailFromStream(pcapID, streamID, frame.timestamp);
+            <div className="lst-video-timeline">
+                <div className="wrapper">
+                    <div className="row">
+                        {props.frames.map((frame, index) => {
+                            const { pcapID, streamID } = props;
+                            const imageClassName = classNames(
+                                'col-xs-2',
+                                'lst-video-timeline-image',
+                                {
+                                    'lst-hide': frame.hide,
+                                    selected: frame.timestamp === props.frames[frameIndex].timestamp
+                                }
+                            );
+                            const frameImageURL = api.getThumbnailFromStream(pcapID, streamID, frame.timestamp);
 
-                        return (
-                            <div className={imageClassName} key={frame.timestamp}>
-                                <img
-                                    alt={`${frame.index}`}
-                                    src={frameImageURL}
-                                    onClick={onImageClick}
-                                />
-                            </div>
-                        );
-                    })}
-                </div>
-                <div className="lst-timeline-bar row" id='progress' onClick={onProgressClick}>
-                    <div className="lst-timeline-progress" style={{ width: `${streamPercentage}%` }} />
+                            return (
+                                <div className={imageClassName} key={frame.timestamp}>
+                                    <img
+                                        alt={`${index}`}
+                                        src={frameImageURL}
+                                        onClick={onClick}
+                                    />
+                                    <div>
+                                        {`${index + 1}`}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         );
