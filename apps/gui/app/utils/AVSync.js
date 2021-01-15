@@ -77,8 +77,8 @@ export const getAVDelay = (comparison, audioCursor, videoCursor, delay) => {
         return;
     }
 
-    console.log(`Res:`);
-    console.log(result);
+    // console.log(`Res:`);
+    // console.log(result);
 
     api.postComparison(comparison.id, {
         id: comparison.id,

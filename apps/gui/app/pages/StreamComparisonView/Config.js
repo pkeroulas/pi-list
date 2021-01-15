@@ -57,7 +57,7 @@ const ComparisonConfigPane = (props) => {
             />
             {
                 renderCard(
-                    props.mainStreamInfo,
+                    props.refStreamInfo,
                     props.comparison_type === 'crossCorrelation' ? `(channel ${props.reference.channel})` : '',
                     0
                 )
@@ -74,7 +74,7 @@ const ComparisonConfigPane = (props) => {
             />
             {
                 renderCard(
-                    props.refStreamInfo,
+                    props.mainStreamInfo,
                     props.comparison_type === 'crossCorrelation' ? `(channel ${props.main.channel})` : '',
                     1
                 )

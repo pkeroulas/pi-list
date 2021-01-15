@@ -22,7 +22,7 @@ const AVSync = (props) => {
 
     const summary = [
         {
-            labelTag: 'audio_player.cursor',
+            labelTag: 'video_player.cursor',
             value: videoCursor.position + 1,
             units: video.scan_type === 'interlaced'? 'fields' : 'frames',
         },
